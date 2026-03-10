@@ -307,6 +307,7 @@ export default function Header() {
                                     <Link
                                         key={item.name}
                                         href={item.href}
+                                        onClick={() => setIsMobileMenuOpen(false)}
                                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                                             isActive
                                                 ? "bg-blue-50 text-blue-700"
