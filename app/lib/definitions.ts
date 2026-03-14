@@ -1,4 +1,4 @@
-export type TicketStatus = 'Daily Digest' | 'Queued' | 'Diagnosing' | 'Waiting for Parts' | 'Repairing' | 'Ready for Pickup' | 'Completed';
+export type TicketStatus = 'queued' | 'diagnosing' | 'waiting-for-parts' | 'repairing' | 'pickup' | 'completed';
 export type DeviceType = 'phone' | 'laptop' | 'tablet' | 'desktop' | 'other' | 'tv' | 'speaker';
 
 export interface NavLinkType {
