@@ -1,11 +1,11 @@
-import { TicketCardType, TicketType } from "../lib/definitions";
+import { TicketCardType, TicketStatus, TicketType } from "../lib/definitions";
 
-export const getTicketAlertLevel = (ticket: TicketCardType | TicketType): 'normal' | 'warning' | 'danger' => {
+export const getTicketAlertLevel = ({etr, status}: {etr: Date | undefined, status: TicketStatus}): 'normal' | 'warning' | 'danger' => {
     const now = new Date();
-    const deadline = ticket.etr ? new Date(ticket.etr) : null;
+    const deadline = etr ? new Date(etr) : null;
     const hoursUntilDeadline = deadline ? (deadline.getTime() - now.getTime()) / (1000 * 60 * 60) : 0;
     
-    if (ticket.status === 'completed' || ticket.status === 'pickup') {
+    if (status === 'completed' || status === 'pickup') {
         return 'normal';
     }
     

@@ -18,7 +18,7 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
         paid,
     } = ticket;
 
-    const alertLevel = getTicketAlertLevel(ticket);
+    const alertLevel = getTicketAlertLevel({ etr, status });
 
     const getDeviceIcon = (size: string) => {
         switch (device_type) {
