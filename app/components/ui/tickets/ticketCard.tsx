@@ -1,7 +1,7 @@
 import { TicketCardType } from "@/app/lib/definitions";
 import Link from "next/link";import { Smartphone, Laptop, Tablet, Clock, User, AlertCircle, Tv, Speaker, Cable } from 'lucide-react';
 import { Card } from "@/app/components/reusable/card";
-import { getTimeUntilDeadline, getTicketAlertLevelCard } from "@/app/utils/ticketUtils";
+import { getTimeUntilDeadline, getTicketAlertLevel } from "@/app/utils/ticketUtils";
 import { Badge } from "@/app/components/reusable/badge";
 
 export function TicketCard({ ticket }: { ticket: TicketCardType }) {
@@ -11,14 +11,14 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
         device_type,
         device_brand,
         device_model,
-        description,
+        issue_description,
         etr,
         status,
         total_cost,
         paid,
     } = ticket;
 
-    const alertLevel = getTicketAlertLevelCard(ticket);
+    const alertLevel = getTicketAlertLevel(ticket);
 
     const getDeviceIcon = (size: string) => {
         switch (device_type) {
@@ -88,7 +88,7 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
                             {device_brand} {device_model}
                         </div>
                         <div className="line-clamp-2 mt-1 text-slate-600 leading-relaxed">
-                            {description}
+                            {issue_description}
                         </div>
                     </div>
 
@@ -96,7 +96,7 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
                         <Clock className="size-3.5 text-slate-600" />
                         <span className="font-medium text-slate-700">
                             {getTimeUntilDeadline(
-                                etr || null,
+                                etr,
                             )}
                         </span>
                     </div>

@@ -4,13 +4,11 @@ import { TicketCardType } from "@/app/lib/definitions";
 import { mockDataTicketCard } from "@/app/lib/mockdata";
 import {
     getStatusFromSlug,
-    statusToSlugMap,
     isValidStatusSlug,
-    statusSlugMap,
 } from "@/app/utils/statusUtils";
 import { TicketStatus } from "@/app/lib/definitions";
-import { Badge } from "@/app/components/ui/badge";
-import { Card } from "@/app/components/ui/card";
+import { Badge } from "@/app/components/reusable/badge";
+import { Card } from "@/app/components/reusable/card";
 
 interface StatusPageProps {
     params: Promise<{ status: string }>;
@@ -25,7 +23,7 @@ export default async function StatusPage({ params }: StatusPageProps) {
 
     const status = getStatusFromSlug(slug as TicketStatus);
     const tickets = mockDataTicketCard.filter(
-        (ticket) => ticket.status === status,
+        (ticket) => ticket.status === slug,
     );
 
     const statusConfig: Record<
@@ -43,7 +41,7 @@ export default async function StatusPage({ params }: StatusPageProps) {
             icon: "🔍",
         },
         "waiting-for-parts": {
-            // this is a string, not a TicketStatus
+            // this is a string because it uses dash(-) in the name
             bg: "from-orange-100 to-orange-50",
             accent: "bg-orange-500",
             icon: "📦",
@@ -65,7 +63,7 @@ export default async function StatusPage({ params }: StatusPageProps) {
         },
     };
 
-    const config = statusConfig[statusToSlugMap[status as TicketStatus]];
+    const config = statusConfig[slug as TicketStatus];
 
     return (
         <div className="max-w-xl mx-auto animate-in fade-in zoom-in-95 duration-200">
