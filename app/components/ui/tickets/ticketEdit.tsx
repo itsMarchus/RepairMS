@@ -417,7 +417,20 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                 <Label className="text-gray-600">
                                     Tracking ID
                                 </Label>
-                                <Input value={ticket.ticket_number} disabled />
+                                <p className="font-mono text-sm">
+                                    {ticket.ticket_number}
+                                </p>
+                                <Link
+                                    href={`/customer/${ticket.ticket_number}`}
+                                    target="_blank"
+                                >
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                    >
+                                        View Customer Portal
+                                    </Button>
+                                </Link> 
                             </div>
                         </Card>
 
@@ -524,7 +537,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="paid">Payment Status</Label>
-                                    <Select
+                                    {/* <Select
                                         value={formValues.paid}
                                         onValueChange={(value) =>
                                             setFormValues((previous) => ({
@@ -544,7 +557,10 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                                 Paid
                                             </SelectItem>
                                         </SelectContent>
-                                    </Select>
+                                    </Select> */}
+                                    <Badge variant={ticket.payment.paid ? 'default' : 'secondary'} className="w-full justify-center">
+                                        {ticket.payment.paid ? 'Paid' : 'Unpaid'}
+                                    </Badge>
                                 </div>
                             </div>
                         </Card>
