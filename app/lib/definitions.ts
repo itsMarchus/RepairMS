@@ -16,7 +16,7 @@ export interface TicketCardType {
     device_brand: string;
     device_model: string;
     issue_description: string;
-    etr?: Date;
+    est_time_repair?: Date;
     status: TicketStatus;
     total_cost: number;
     paid: boolean;
@@ -31,46 +31,36 @@ export interface TicketType {
     device_model: string;
     issue_description: string;
     technician_notes?: string;
-    etr?: Date;
+    est_time_repair?: Date;
     photo: string | null;
-    timeline: {
-        created_at: Date;
-        updated_at: Date;
-    };
-    payment: {
-        repair_cost: number;
-        parts_cost: number;
-        tax: number;
-        total: number;
-        paid: boolean;
-    };
+    created_at: Date;
+    updated_at: Date;
+    repair_cost: number;
+    parts_cost: number;
+    tax: number;
+    total_cost: number;
+    paid: boolean;
     status: TicketStatus;
 }
 
 export interface TicketDetailsType {
     id: string;
     ticket_number: string;
-    customer_id: string;
     customer_name: string;
     customer_phone: string;
-    customer_email: string;
+    customer_email: string | null;
     device_type: DeviceType;
     device_brand: string;
     device_model: string;
     issue_description: string;
     technician_notes?: string;
-    etr?: Date;
+    est_time_repair?: Date;
     photo: string | null;
-    timeline: {
-        created_at: Date;
-        updated_at: Date;
-    };
-    payment: {
-        repair_cost: number;
-        parts_cost: number;
-        tax: number;
-        total: number;
-        paid: boolean;
-    };
+    created_at: Date;
+    updated_at: Date;
+    repair_cost: number;
+    parts_cost: number;
+    total_cost: number;
+    paid: boolean;
     status: TicketStatus;
 }
