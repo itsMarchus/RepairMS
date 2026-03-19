@@ -11,7 +11,6 @@ import {
     Mail,
     Camera,
     QrCode,
-    PhilippinePeso,
     Pencil,
 } from "lucide-react";
 import {
@@ -20,6 +19,7 @@ import {
 } from "@/app/utils/ticketUtils";
 import { getStatusFromSlug } from "@/app/utils/statusUtils";
 import ImageModal from "@/app/components/reusable/imageModal";
+import { formatLabel, formatMoney } from "@/app/utils/utils";
 
 export default function TicketDetails({
     ticket,
@@ -29,7 +29,6 @@ export default function TicketDetails({
     const {
         id,
         ticket_number,
-        customer_id,
         customer_name,
         customer_phone,
         customer_email,
@@ -38,13 +37,17 @@ export default function TicketDetails({
         device_model,
         issue_description,
         technician_notes,
-        etr,
+        est_time_repair,
         photo,
-        timeline,
-        payment,
+        created_at,
+        updated_at,
+        repair_cost,
+        parts_cost,
+        total_cost,
+        paid,
         status,
     } = ticket;
-    const alertLevel = getTicketAlertLevel({ etr, status });
+    const alertLevel = getTicketAlertLevel({ est_time_repair, status });
 
     const alertBorders = {
         normal: "border-gray-200",
@@ -52,16 +55,10 @@ export default function TicketDetails({
         danger: "border-red-400 border-2",
     };
 
-    const paymentRows = Object.entries(payment).filter(
+    const paymentRows = Object.entries({ repair_cost, parts_cost, total_cost }).filter(
         ([_, value]) => typeof value === "number",
     );
-    const formatLabel = (key: string) =>
-        key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    const formatMoney = (value: number) =>
-        value.toLocaleString("en-PH", {
-            style: "currency",
-            currency: "PHP",
-        });
+
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
             <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
@@ -151,8 +148,8 @@ export default function TicketDetails({
                                     <Label>Estimated Completion</Label>
                                     <div className="flex items-center justify-between gap-3">
                                         <span className="text-sm text-slate-600">
-                                            {etr
-                                                ? new Date(etr).toLocaleString()
+                                            {est_time_repair
+                                                ? new Date(est_time_repair).toLocaleString()
                                                 : "- -"}
                                         </span>
                                         <Badge
@@ -164,7 +161,7 @@ export default function TicketDetails({
                                                         : "secondary"
                                             }
                                         >
-                                            {getTimeUntilDeadline(etr)}
+                                            {getTimeUntilDeadline(est_time_repair)}
                                         </Badge>
                                     </div>
                                 </div>
@@ -385,11 +382,11 @@ export default function TicketDetails({
                                 </div>
                                 <Badge
                                     variant={
-                                        payment.paid ? "default" : "secondary"
+                                        paid ? "default" : "secondary"
                                     }
                                     className="w-full justify-center"
                                 >
-                                    {payment.paid ? "Paid" : "Unpaid"}
+                                    {paid ? "Paid" : "Unpaid"}
                                 </Badge>
                             </div>
                         </Card>
@@ -406,7 +403,7 @@ export default function TicketDetails({
                                     </Label>
                                     <p>
                                         {new Date(
-                                            timeline.created_at,
+                                            created_at,
                                         ).toLocaleString()}
                                     </p>
                                 </div>
@@ -416,7 +413,7 @@ export default function TicketDetails({
                                     </Label>
                                     <p>
                                         {new Date(
-                                            timeline.updated_at,
+                                            updated_at,
                                         ).toLocaleString()}
                                     </p>
                                 </div>

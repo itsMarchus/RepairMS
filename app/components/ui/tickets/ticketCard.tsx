@@ -3,6 +3,7 @@ import Link from "next/link";import { Smartphone, Laptop, Tablet, Clock, User, A
 import { Card } from "@/app/components/reusable/card";
 import { getTimeUntilDeadline, getTicketAlertLevel } from "@/app/utils/ticketUtils";
 import { Badge } from "@/app/components/reusable/badge";
+import { formatMoney } from "@/app/utils/utils";
 
 export function TicketCard({ ticket }: { ticket: TicketCardType }) {
     const {
@@ -12,13 +13,13 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
         device_brand,
         device_model,
         issue_description,
-        etr,
+        est_time_repair,
         status,
         total_cost,
         paid,
     } = ticket;
 
-    const alertLevel = getTicketAlertLevel({ etr, status });
+    const alertLevel = getTicketAlertLevel({ est_time_repair, status });
 
     const getDeviceIcon = (size: string) => {
         switch (device_type) {
@@ -96,7 +97,7 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
                         <Clock className="size-3.5 text-slate-600" />
                         <span className="font-medium text-slate-700">
                             {getTimeUntilDeadline(
-                                etr,
+                                est_time_repair,
                             )}
                         </span>
                     </div>
@@ -107,7 +108,7 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
                                 variant={paid ? "default" : "secondary"}
                                 className="font-bold shadow-sm"
                             >
-                                ${total_cost}
+                                {formatMoney(total_cost)}
                             </Badge>
                             {!paid && status === "pickup" && (
                                 <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-md">

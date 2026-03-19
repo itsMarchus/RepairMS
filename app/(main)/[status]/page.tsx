@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { TicketCard } from "@/app/components/ui/tickets/ticketCard";
 import { TicketCardType } from "@/app/lib/definitions";
-import { mockDataTicketCard } from "@/app/lib/mockdata";
+import { getTicketsByStatus } from "@/app/utils/supabase/queries";
 import {
     getStatusFromSlug,
     isValidStatusSlug,
@@ -22,9 +22,7 @@ export default async function StatusPage({ params }: StatusPageProps) {
     }
 
     const status = getStatusFromSlug(slug as TicketStatus);
-    const tickets = mockDataTicketCard.filter(
-        (ticket) => ticket.status === slug,
-    );
+    const { data, success } = await getTicketsByStatus(slug as TicketStatus); // will implement later
 
     const statusConfig: Record<
         TicketStatus,
@@ -82,23 +80,23 @@ export default async function StatusPage({ params }: StatusPageProps) {
                             variant="secondary"
                             className="font-bold shadow-sm"
                         >
-                            {tickets.length}
+                            {data?.length}
                         </Badge>
                     </div>
                     <div
                         className={`h-1 ${config.accent} rounded-full mt-2 opacity-60`}
                     />
                 </div>
-                <Card className="min-h-[500px] rounded-t-none border-t-0 p-3 space-y-3 bg-white/60 backdrop-blur-sm shadow-lg">
-                    {tickets.map((ticket) => (
+                <Card className="min-h-[500px] rounded-t-none border-t-0 p-3 bg-white/60 backdrop-blur-sm shadow-lg">
+                    {data?.map((ticket: TicketCardType) => (
                         <div
-                            key={ticket.id}
+                            key={ticket.ticket_number}
                             className="transition-transform hover:scale-[1.02] active:scale-95"
                         >
                             <TicketCard ticket={ticket} />
                         </div>
                     ))}
-                    {tickets.length === 0 && (
+                    {data?.length === 0 && (
                         <div className="text-center text-slate-400 py-12">
                             <div className="text-4xl mb-2 opacity-30">
                                 {config.icon}
