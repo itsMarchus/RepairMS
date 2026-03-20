@@ -10,7 +10,7 @@ export default async function TicketDetailsPage({
 }) {
 
     const { ticket } = await params;
-console.log(ticket)
+
     if (!ticket) {
         notFound();
     } // TODO: add not-found.tsx
@@ -24,7 +24,7 @@ console.log(ticket)
         return (
             <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
                 <Suspense>
-                    <TicketDetails ticket={data[0]} />
+                    <TicketDetails ticket={data} />
                 </Suspense>
             </main>
         )

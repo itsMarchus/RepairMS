@@ -12,3 +12,11 @@ export const formatMoney = (value: number) =>
         style: "currency",
         currency: "PHP",
 });
+
+export const cleanFileName = (deviceType: string, deviceBrand: string, fileName: string) => {
+    const fileExt = fileName.split('.').pop();
+    const cleanDeviceType = deviceType.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const cleanDeviceBrand = deviceBrand.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const cleanFileName = `${cleanDeviceType}_${cleanDeviceBrand}_${Date.now()}.${fileExt}`;
+    return cleanFileName;
+}
