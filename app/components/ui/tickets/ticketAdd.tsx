@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Camera, Save } from "lucide-react";
+import imageCompression from "browser-image-compression";
+import { toast } from "sonner";
 import { Button } from "@/app/components/reusable/button";
 import { Input } from "@/app/components/reusable/input";
 import { Textarea } from "@/app/components/reusable/textarea";
@@ -14,9 +17,127 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/app/components/reusable/select";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { createTicket } from "@/app/utils/supabase/action";
+import type { ticketState } from "@/app/utils/supabase/action";
+
+const compressionOptions = {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 1600,
+    useWebWorker: true,
+};
+
+const fieldError = (errors: ticketState["errors"], key: keyof ticketState["errors"]) =>
+    errors[key]?.[0] ?? null;
 
 export default function TicketAdd() {
+    const router = useRouter();
+    const initialState: ticketState = {
+        errors: {},
+        success: false,
+        message: null,
+    };
+
+    const [state, formAction, isPending] = useActionState(createTicket, initialState);
+
+    const [customerName, setCustomerName] = useState("");
+    const [customerPhone, setCustomerPhone] = useState("");
+    const [customerEmail, setCustomerEmail] = useState("");
+    const [deviceType, setDeviceType] = useState("");
+    const [deviceBrand, setDeviceBrand] = useState("");
+    const [deviceModel, setDeviceModel] = useState("");
+    const [issueDescription, setIssueDescription] = useState("");
+    const [estTimeRepair, setEstTimeRepair] = useState("");
+
+    const photoInputRef = useRef<HTMLInputElement>(null);
+    const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
+    const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string | null>(null);
+    const [photoError, setPhotoError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!state.message) {
+            return;
+        }
+
+        if (state.success) {
+            toast.success(state.message);
+            const timeout = setTimeout(() => {
+                router.push("/queued");
+                router.refresh();
+            }, 700);
+
+            return () => clearTimeout(timeout);
+        }
+
+        toast.error(state.message);
+    }, [router, state.message, state.success]);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        setPhotoError(null);
+
+        if (!file) {
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+            setPhotoError("Please select an image file.");
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            setPhotoError("Image size should be less than 10MB.");
+            return;
+        }
+
+        if (selectedPhotoPreview) {
+            URL.revokeObjectURL(selectedPhotoPreview);
+        }
+
+        const preview = URL.createObjectURL(file);
+        setSelectedPhotoFile(file);
+        setSelectedPhotoPreview(preview);
+    };
+
+    const removeImage = () => {
+        if (selectedPhotoPreview) {
+            URL.revokeObjectURL(selectedPhotoPreview);
+        }
+        setSelectedPhotoFile(null);
+        setSelectedPhotoPreview(null);
+        setPhotoError(null);
+        if (photoInputRef.current) {
+            photoInputRef.current.value = "";
+        }
+    };
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setPhotoError(null);
+
+        const formData = new FormData(event.currentTarget);
+
+        if (selectedPhotoFile) {
+            try {
+                const compressedFile = await imageCompression(
+                    selectedPhotoFile,
+                    compressionOptions,
+                );
+                formData.set("photo", compressedFile, compressedFile.name);
+            } catch {
+                setPhotoError("Failed to compress photo. Please try another image.");
+                return;
+            }
+        } else {
+            formData.delete("photo");
+        }
+
+        startTransition(() => {
+            formAction(formData);
+        });
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
             <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
@@ -45,8 +166,20 @@ export default function TicketAdd() {
             </header>
 
             <main className="max-w-4xl mx-auto px-6 py-8">
-                <form>
+                <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-6">
+                        {state.message ? (
+                            <p
+                                className={`rounded-lg border px-3 py-2 text-sm ${
+                                    Object.keys(state.errors).length > 0
+                                        ? "border-red-200 bg-red-50 text-red-700"
+                                        : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                }`}
+                            >
+                                {state.message}
+                            </p>
+                        ) : null}
+
                         {/* Customer Information */}
                         <Card className="p-6 shadow-lg border-slate-200">
                             <div className="flex items-center gap-2 mb-4">
@@ -76,16 +209,22 @@ export default function TicketAdd() {
                                     </Label>
                                     <Input
                                         id="customerName"
-                                        // value={formData.customerName}
-                                        // onChange={(e) =>
-                                        //     setFormData({
-                                        //         ...formData,
-                                        //         customerName: e.target.value,
-                                        //     })
-                                        // }
+                                        name="customer_name"
+                                        value={customerName}
+                                        onChange={(e) =>
+                                            setCustomerName(e.target.value)
+                                        }
                                         placeholder="John Doe"
                                         required
                                     />
+                                    {fieldError(state.errors, "customer_name") ? (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {fieldError(
+                                                state.errors,
+                                                "customer_name",
+                                            )}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div>
                                     <Label htmlFor="customerPhone">
@@ -93,17 +232,26 @@ export default function TicketAdd() {
                                     </Label>
                                     <Input
                                         id="customerPhone"
+                                        name="customer_phone"
                                         type="tel"
-                                        // value={formData.customerPhone}
-                                        // onChange={(e) =>
-                                        //     setFormData({
-                                        //         ...formData,
-                                        //         customerPhone: e.target.value,
-                                        //     })
-                                        // }
-                                        placeholder="(+63) 9XX XXX XXXX"
+                                        value={customerPhone}
+                                        onChange={(e) =>
+                                            setCustomerPhone(
+                                                e.target.value.replace(/\D/g, ""),
+                                            )
+                                        }
+                                        maxLength={11}
+                                        placeholder="09123456789"
                                         required
                                     />
+                                    {fieldError(state.errors, "customer_phone") ? (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {fieldError(
+                                                state.errors,
+                                                "customer_phone",
+                                            )}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div className="md:col-span-2">
                                     <Label htmlFor="customerEmail">
@@ -111,16 +259,22 @@ export default function TicketAdd() {
                                     </Label>
                                     <Input
                                         id="customerEmail"
+                                        name="customer_email"
                                         type="email"
-                                        // value={formData.customerEmail}
-                                        // onChange={(e) =>
-                                        //     setFormData({
-                                        //         ...formData,
-                                        //         customerEmail: e.target.value,
-                                        //     })
-                                        // }
+                                        value={customerEmail}
+                                        onChange={(e) =>
+                                            setCustomerEmail(e.target.value)
+                                        }
                                         placeholder="customer@email.com"
                                     />
+                                    {fieldError(state.errors, "customer_email") ? (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {fieldError(
+                                                state.errors,
+                                                "customer_email",
+                                            )}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
                         </Card>
@@ -153,68 +307,88 @@ export default function TicketAdd() {
                                         Device Type *
                                     </Label>
                                     <Select
-                                        // value={formData.deviceType}
-                                        // onValueChange={(value) =>
-                                        //     setFormData({
-                                        //         ...formData,
-                                        //         deviceType: value,
-                                        //     })
-                                        // }
+                                        value={deviceType}
+                                        onValueChange={setDeviceType}
                                     >
                                         <SelectTrigger id="deviceType">
                                             <SelectValue placeholder="Select device type" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="Smartphone">
-                                                Smartphone
+                                            <SelectItem value="phone">
+                                                Phone
                                             </SelectItem>
-                                            <SelectItem value="Tablet">
-                                                Tablet
-                                            </SelectItem>
-                                            <SelectItem value="Laptop">
+                                            <SelectItem value="laptop">
                                                 Laptop
                                             </SelectItem>
-                                            <SelectItem value="Desktop">
-                                                Desktop
+                                            <SelectItem value="tablet">
+                                                Tablet
                                             </SelectItem>
-                                            <SelectItem value="Smartwatch">
-                                                Smartwatch
+                                            <SelectItem value="tv">
+                                                TV
                                             </SelectItem>
-                                            <SelectItem value="Gaming Console">
-                                                Gaming Console
+                                            <SelectItem value="speaker">
+                                                Speaker
+                                            </SelectItem>
+                                            <SelectItem value="other">
+                                                Other
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <Input
+                                        type="hidden"
+                                        name="device_type"
+                                        value={deviceType}
+                                        readOnly
+                                    />
+                                    {fieldError(state.errors, "device_type") ? (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {fieldError(
+                                                state.errors,
+                                                "device_type",
+                                            )}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div>
                                     <Label htmlFor="brand">Brand *</Label>
                                     <Input
                                         id="brand"
-                                        // value={formData.brand}
-                                        // onChange={(e) =>
-                                        //     setFormData({
-                                        //         ...formData,
-                                        //         brand: e.target.value,
-                                        //     })
-                                        // }
+                                        name="device_brand"
+                                        value={deviceBrand}
+                                        onChange={(e) =>
+                                            setDeviceBrand(e.target.value)
+                                        }
                                         placeholder="Apple, Samsung, Dell, etc."
                                         required
                                     />
+                                    {fieldError(state.errors, "device_brand") ? (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {fieldError(
+                                                state.errors,
+                                                "device_brand",
+                                            )}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div className="md:col-span-2">
-                                    <Label htmlFor="model">Model *</Label>
+                                    <Label htmlFor="model">Model</Label>
                                     <Input
                                         id="model"
-                                        // value={formData.model}
-                                        // onChange={(e) =>
-                                        //     setFormData({
-                                        //         ...formData,
-                                        //         model: e.target.value,
-                                        //     })
-                                        // }
+                                        name="device_model"
+                                        value={deviceModel}
+                                        onChange={(e) =>
+                                            setDeviceModel(e.target.value)
+                                        }
                                         placeholder="iPhone 14 Pro, Galaxy S23, XPS 15, etc."
-                                        required
                                     />
+                                    {fieldError(state.errors, "device_model") ? (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {fieldError(
+                                                state.errors,
+                                                "device_model",
+                                            )}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
                         </Card>
@@ -248,47 +422,63 @@ export default function TicketAdd() {
                                     </Label>
                                     <Textarea
                                         id="issueDescription"
-                                        // value={formData.issueDescription}
-                                        // onChange={(e) =>
-                                        //     setFormData({
-                                        //         ...formData,
-                                        //         issueDescription:
-                                        //             e.target.value,
-                                        //     })
-                                        // }
+                                        name="issue_description"
+                                        value={issueDescription}
+                                        onChange={(e) =>
+                                            setIssueDescription(e.target.value)
+                                        }
                                         placeholder="Detailed description of the problem..."
                                         rows={4}
                                         required
                                     />
+                                    {fieldError(
+                                        state.errors,
+                                        "issue_description",
+                                    ) ? (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {fieldError(
+                                                state.errors,
+                                                "issue_description",
+                                            )}
+                                        </p>
+                                    ) : null}
                                 </div>
                                 <div>
-                                    <Label htmlFor="estimatedHours">
-                                        Estimated Completion (Hours)
+                                    <Label htmlFor="estTimeRepair">
+                                        Estimated Time to Repair
                                     </Label>
                                     <Input
-                                        id="estimatedHours"
-                                        type="number"
-                                        // value={formData.estimatedHours}
-                                        // onChange={(e) =>
-                                        //     setFormData({
-                                        //         ...formData,
-                                        //         estimatedHours: e.target.value,
-                                        //     })
-                                        // }
-                                        min="1"
+                                        id="estTimeRepair"
+                                        name="est_time_repair"
+                                        type="datetime-local"
+                                        value={estTimeRepair}
+                                        onChange={(e) =>
+                                            setEstTimeRepair(e.target.value)
+                                        }
                                     />
+                                    {fieldError(
+                                        state.errors,
+                                        "est_time_repair",
+                                    ) ? (
+                                        <p className="mt-1 text-sm text-red-600">
+                                            {fieldError(
+                                                state.errors,
+                                                "est_time_repair",
+                                            )}
+                                        </p>
+                                    ) : null}
                                 </div>
                             </div>
                         </Card>
 
-                        {/* Before Photos */}
+                        {/* Photos */}
                         <Card className="p-6 shadow-lg border-slate-200">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="p-2 bg-green-100 rounded-lg">
                                     <Camera className="size-5 text-green-600" />
                                 </div>
                                 <h2 className="text-lg font-bold text-slate-800">
-                                    Before Photos
+                                    Photos
                                 </h2>
                             </div>
                             <div className="space-y-4">
@@ -300,57 +490,50 @@ export default function TicketAdd() {
                                         <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-sky-400 hover:bg-sky-50/50 transition-all bg-gradient-to-br from-slate-50 to-blue-50/20">
                                             <Camera className="size-12 mx-auto text-slate-400 mb-2" />
                                             <p className="text-sm font-medium text-slate-700">
-                                                Click to upload device photos
+                                                Click to upload current device photo
                                             </p>
                                             <p className="text-xs text-slate-500 mt-1">
-                                                Recommended for documentation
+                                                One photo only. It will be compressed before upload.
                                             </p>
                                         </div>
                                     </Label>
                                     <Input
                                         id="photoUpload"
+                                        name="photo"
+                                        ref={photoInputRef}
                                         type="file"
                                         accept="image/*"
-                                        multiple
-                                        // onChange={handlePhotoUpload}
+                                        onChange={handleImageUpload}
                                         className="hidden"
                                     />
                                 </div>
 
-                                {/* {beforePhotos.length > 0 && (
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {beforePhotos.map((photo, index) => (
-                                            <div
-                                                key={index}
-                                                className="relative"
-                                            >
-                                                <img
-                                                    src={photo}
-                                                    alt={`Before ${index + 1}`}
-                                                    className="rounded-lg w-full h-32 object-cover"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    className="absolute top-2 right-2"
-                                                    onClick={() =>
-                                                        setBeforePhotos(
-                                                            (prev) =>
-                                                                prev.filter(
-                                                                    (_, i) =>
-                                                                        i !==
-                                                                        index,
-                                                                ),
-                                                        )
-                                                    }
-                                                >
-                                                    Remove
-                                                </Button>
-                                            </div>
-                                        ))}
+                                {selectedPhotoPreview ? (
+                                    <div className="space-y-2">
+                                        <Image
+                                            src={selectedPhotoPreview}
+                                            alt="Selected device"
+                                            width={1200}
+                                            height={720}
+                                            className="h-52 w-full rounded-lg border border-slate-200 object-cover"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={removeImage}
+                                        >
+                                            Remove photo
+                                        </Button>
                                     </div>
-                                )} */}
+                                ) : null}
+                                {photoError ? (
+                                    <p className="text-sm text-red-600">{photoError}</p>
+                                ) : null}
+                                {fieldError(state.errors, "photo") ? (
+                                    <p className="text-sm text-red-600">
+                                        {fieldError(state.errors, "photo")}
+                                    </p>
+                                ) : null}
                             </div>
                         </Card>
 
@@ -367,10 +550,11 @@ export default function TicketAdd() {
                             </Link>
                             <Button
                                 type="submit"
+                                disabled={isPending}
                                 className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-blue-500/30 px-8"
                             >
                                 <Save className="size-4 mr-2" />
-                                Create Ticket
+                                {isPending ? "Creating..." : "Create Ticket"}
                             </Button>
                         </div>
                     </div>
