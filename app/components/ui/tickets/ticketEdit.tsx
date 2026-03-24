@@ -45,20 +45,7 @@ import {
     getTimeUntilDeadline,
 } from "@/app/utils/ticketUtils";
 import { statusSlugMap } from "@/app/utils/statusUtils";
-import { formatInTimeZone } from 'date-fns-tz';
-import { cookies } from "next/headers";
-
-async function toDateTimeLocalString(value?: Date): Promise<string> {
-    const cookieStore = await cookies();
-    const timezoneFromCookie = cookieStore.get('timezone')?.value ?? 'UTC';
-    if (!value) return "";
-    const formatted = formatInTimeZone(
-        new Date(value),
-        `${timezoneFromCookie}`,
-        'yyyy-MM-dd\'T\'HH:mm'
-    );
-    return formatted;
-}
+import { format } from 'date-fns';
 
 const fieldError = (errors: ticketState["errors"], key: keyof ticketState["errors"]) =>
     errors[key]?.[0] ?? null;
@@ -85,6 +72,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
     const [ technician_notes, setTechnicianNotes ] = useState(ticket.technician_notes);
     const [ repair_cost, setRepairCost ] = useState(ticket.repair_cost ?? 0);
     const [ parts_cost, setPartsCost ] = useState(ticket.parts_cost ?? 0);
+
 
     const initialState: ticketState = {
         errors: {},
@@ -318,18 +306,20 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                     <div className="flex items-center justify-between gap-3">
                                         <Input
                                             id="etr"
-                                            name="est_time_repair"
                                             type="datetime-local"
-                                            value={est_time_repair ? formatInTimeZone(new Date(est_time_repair), 'Asia/Manila', 'yyyy-MM-dd\'T\'HH:mm') : ''}
+                                            value={est_time_repair ? format(new Date(est_time_repair), 'yyyy-MM-dd\'T\'HH:mm') : ''}
                                             onChange={(event) => {
                                                 if (!event.target.value) {
                                                     setEstTimeRepair(undefined);
                                                     return;
                                                 }
                                                 setEstTimeRepair(new Date(event.target.value));
+                                                console.log(event.target.value);
+                                                console.log(est_time_repair);
                                             }}
                                             aria-invalid={Boolean(fieldError(state.errors, "est_time_repair"))}
                                         />
+                                        <input type="hidden" name="est_time_repair" value={est_time_repair ? new Date(est_time_repair).toISOString() : ''} />
                                         <Badge
                                             variant={
                                                 alertLevel === "danger"
@@ -593,7 +583,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                         Created
                                     </Label>
                                     <Input
-                                        value={new Date(created_at).toLocaleString()}
+                                        value={format(new Date(created_at), 'MMM d, yyyy, h:mm a')}
                                         disabled
                                     />
                                 </div>
@@ -602,7 +592,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                         Last Updated
                                     </Label>
                                     <Input
-                                        value={new Date(updated_at).toLocaleString()}
+                                        value={format(new Date(updated_at), 'MMM d, yyyy, h:mm a')}
                                         disabled
                                     />
                                 </div>

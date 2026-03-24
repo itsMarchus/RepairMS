@@ -3,6 +3,8 @@
 import { createClient } from '@/app/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { TicketStatus } from '@/app/lib/definitions';
+import { formatInTimeZone } from 'date-fns-tz';
+import { parseISO } from 'date-fns';
 
 export const getTicketsByStatus = async (status: TicketStatus) => {
     const cookieStore = await cookies();
@@ -32,6 +34,15 @@ export const getTicketDetailsByNumber = async (ticketNumber: string) => {
         console.error('Failed to get ticket details:', error)
         return { success: false, error: error.message }
     }
+//     console.log(data[0].est_time_repair);
+// console.log(parseISO(data[0].est_time_repair));
+    // if (data[0].est_time_repair) {
+    //     data[0].est_time_repair = formatInTimeZone(
+    //         parseISO(data[0].est_time_repair), 
+    //         cookieStore.get('timezone')?.value ?? 'UTC', 
+    //         'yyyy-MM-dd\'T\'HH:mm:ssXXX'
+    //     );
+    // }
 
     const photoName = data[0]?.photo;
     if (!photoName || photoName === null) {

@@ -190,10 +190,9 @@ export async function updateTicket(id: string, _prevState: ticketState, formData
     }
 
     const { status, est_time_repair, technician_notes, repair_cost, parts_cost } = validatedFields.data;
-console.table({id, status, est_time_repair, technician_notes, repair_cost, parts_cost });
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
-
+console.log(est_time_repair);
     const { error } = await supabase.rpc('update_ticket', {
         p_id: id,
         p_status: status,

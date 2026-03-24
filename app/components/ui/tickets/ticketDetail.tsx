@@ -20,14 +20,14 @@ import {
 import { getStatusFromSlug } from "@/app/utils/statusUtils";
 import ImageModal from "@/app/components/reusable/imageModal";
 import { formatLabel, formatMoney } from "@/app/utils/utils";
+import { convertToLocalTimeReadable } from "@/app/utils/timezone";
 
-export default function TicketDetails({
+export default async function TicketDetails({
     ticket,
 }: {
     ticket: TicketDetailsType;
 }) {
     const {
-        id,
         ticket_number,
         customer_name,
         customer_phone,
@@ -47,13 +47,19 @@ export default function TicketDetails({
         paid,
         status,
     } = ticket;
-    const alertLevel = getTicketAlertLevel({ est_time_repair, status });
 
+    const alertLevel = getTicketAlertLevel({ est_time_repair, status });
     const alertBorders = {
         normal: "border-gray-200",
         warning: "border-yellow-400 border-2",
         danger: "border-red-400 border-2",
     };
+
+    const [est_time_repair_local, created_at_local, updated_at_local] = await Promise.all([
+        est_time_repair ? convertToLocalTimeReadable(est_time_repair as Date) : Promise.resolve("- -"),
+        convertToLocalTimeReadable(created_at as Date),
+        convertToLocalTimeReadable(updated_at as Date),
+    ]);
 
     const paymentRows = Object.entries({ repair_cost, parts_cost, total_cost }).filter(
         ([_, value]) => typeof value === "number",
@@ -148,9 +154,7 @@ export default function TicketDetails({
                                     <Label>Estimated Completion</Label>
                                     <div className="flex items-center justify-between gap-3">
                                         <span className="text-sm text-slate-600">
-                                            {est_time_repair
-                                                ? new Date(est_time_repair).toLocaleString()
-                                                : "- -"}
+                                            {est_time_repair_local}
                                         </span>
                                         <Badge
                                             variant={
@@ -402,9 +406,7 @@ export default function TicketDetails({
                                         Created
                                     </Label>
                                     <p>
-                                        {new Date(
-                                            created_at,
-                                        ).toLocaleString()}
+                                        {created_at_local}
                                     </p>
                                 </div>
                                 <div>
@@ -412,9 +414,7 @@ export default function TicketDetails({
                                         Last Updated
                                     </Label>
                                     <p>
-                                        {new Date(
-                                            updated_at,
-                                        ).toLocaleString()}
+                                        {updated_at_local}
                                     </p>
                                 </div>
                             </div>
