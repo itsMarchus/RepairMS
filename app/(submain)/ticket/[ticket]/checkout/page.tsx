@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation";
-import TicketEdit from "@/app/components/ui/tickets/ticketEdit";
 import { Suspense } from "react";
-import { getTicketDetailsByNumber } from "@/app/utils/supabase/queries";
+import TicketCheckout from "@/app/components/ui/tickets/ticketCheckout";
+import { getTicketCheckoutDetails } from "@/app/utils/supabase/queries";
 
-export default async function EditTicketPage({
+export default async function CheckoutPage({
     params,
-} : {
-    params: Promise<{ ticket: string }>;
+}: {
+    params: Promise<{ ticket: string}>
 }) {
+
     const { ticket } = await params;
 
     if (!ticket) {
@@ -15,7 +16,7 @@ export default async function EditTicketPage({
     }
 
     try {
-        const { data, success } = await getTicketDetailsByNumber(ticket);
+        const { data, success } = await getTicketCheckoutDetails(ticket);
         if (!success) {
             notFound();
         }
@@ -23,12 +24,12 @@ export default async function EditTicketPage({
         return (
             <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
                 <Suspense>
-                    <TicketEdit ticket={data} />
+                    <TicketCheckout ticket={data} />
                 </Suspense>
             </main>
         )
     } catch (error) {
-        console.error('Error fetching ticket:', error);
+        console.error('Error fetching checkout details:', error);
         notFound();
     }
 }

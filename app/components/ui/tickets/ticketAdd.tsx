@@ -11,6 +11,15 @@ import { Textarea } from "@/app/components/reusable/textarea";
 import { Label } from "@/app/components/reusable/label";
 import { Card } from "@/app/components/reusable/card";
 import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/app/components/reusable/dialog";
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -54,6 +63,8 @@ export default function TicketAdd() {
     const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
     const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string | null>(null);
     const [photoError, setPhotoError] = useState<string | null>(null);
+    const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+    const pendingSubmissionDataRef = useRef<FormData | null>(null);
 
     useEffect(() => {
         if (!state.message) {
@@ -133,13 +144,62 @@ export default function TicketAdd() {
             formData.delete("photo");
         }
 
+        pendingSubmissionDataRef.current = formData;
+        setIsConfirmDialogOpen(true);
+    };
+
+    const handleConfirmCreate = () => {
+        const pendingFormData = pendingSubmissionDataRef.current;
+
+        if (!pendingFormData) {
+            setIsConfirmDialogOpen(false);
+            return;
+        }
+
+        setIsConfirmDialogOpen(false);
+        pendingSubmissionDataRef.current = null;
+
         startTransition(() => {
-            formAction(formData);
+            formAction(pendingFormData);
         });
+    };
+
+    const handleCancelCreate = () => {
+        pendingSubmissionDataRef.current = null;
+        setIsConfirmDialogOpen(false);
     };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+            <Dialog
+                open={isConfirmDialogOpen}
+                onOpenChange={(open) => {
+                    setIsConfirmDialogOpen(open);
+                    if (!open) {
+                        pendingSubmissionDataRef.current = null;
+                    }
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Review details before creating ticket</DialogTitle>
+                        <DialogDescription>
+                            Please confirm the customer and device details are accurate. After creating
+                            this ticket, the intake information cannot be edited from this page.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline" onClick={handleCancelCreate}>
+                                Go Back
+                            </Button>
+                        </DialogClose>
+                        <Button type="button" onClick={handleConfirmCreate}>
+                            Yes, Create Ticket
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
             <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
                 <div className="max-w-4xl mx-auto px-6 py-5">
                     <div className="flex items-center gap-4">

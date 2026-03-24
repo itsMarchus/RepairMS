@@ -7,6 +7,7 @@ import { LogIn, Mail } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { loginWithPassword, sendMagicLink } from "@/app/(auth)/login/actions";
+import TimezoneSetter from "@/app/(auth)/login/timezone";
 
 interface LoginPageProps {
     searchParams: Promise<{
@@ -30,6 +31,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+            <TimezoneSetter />
             <div className="mx-auto flex min-h-screen max-w-[1600px] items-center justify-center px-4 py-8 sm:px-6">
                 <Card className="w-full max-w-md border-slate-200/80 bg-white/85 shadow-xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
                     <CardHeader className="space-y-2">

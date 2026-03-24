@@ -85,7 +85,7 @@ export default function TicketDetails({
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <Link href={`/checkout/${id}`}>
+                            <Link href={`/ticket/${ticket_number}/checkout`}>
                                 <Button
                                     variant="outline"
                                     className="hover:bg-blue-50 hover:border-blue-200"
@@ -96,7 +96,7 @@ export default function TicketDetails({
                                     </span>
                                 </Button>
                             </Link>
-                            <Link href={`/ticket/${id}/edit`}>
+                            <Link href={`/ticket/${ticket_number}/edit`}>
                                 <Button className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-blue-500/30">
                                     <Pencil className="size-4 md:mr-2" />
                                     <span className="hidden md:block">

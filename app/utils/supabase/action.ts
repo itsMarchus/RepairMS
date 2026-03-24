@@ -4,6 +4,7 @@ import { z } from "zod";
 import { cleanFileName } from "@/app/utils/utils";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import { validStatusSlugs } from "../statusUtils";
 
 const ticketSchema = z.object({
     id: z.string(),
@@ -44,11 +45,39 @@ const ticketSchema = z.object({
         },
         z.instanceof(File).optional(),
     ),
+    status: z.enum(validStatusSlugs),
+    technician_notes: z.string().optional(),
+    repair_cost: z.number().optional(),
+    parts_cost: z.number().optional()
 })
 
-const createTicketSchema = ticketSchema.omit({ id: true });
+const createTicketSchema = ticketSchema.omit({ id: true, status: true, technician_notes: true, repair_cost: true, parts_cost: true});
+const updateTicketSchema = ticketSchema
+    .omit({ id: true, customer_name: true, customer_phone: true, customer_email: true, device_type: true, device_brand: true, device_model: true, issue_description: true, photo: true })
+    .extend({
+        repair_cost: z.preprocess(
+            (val) => {
+                if (val === "" || val === null || val === undefined) {
+                    return undefined;
+                }
+                return Number(val);
+            },
+            z.number().min(0, { message: "Repair cost must be 0 or higher." }).optional(),
+        ),
+        parts_cost: z.preprocess(
+            (val) => {
+                if (val === "" || val === null || val === undefined) {
+                    return undefined;
+                }
+                return Number(val);
+            },
+            z.number().min(0, { message: "Parts cost must be 0 or higher." }).optional(),
+        )
+    });
+
 export type CreateTicketPayload = z.infer<typeof createTicketSchema>;
-type TicketFieldKey = keyof CreateTicketPayload;
+type UpdateTicketPayload = z.infer<typeof updateTicketSchema>;
+type TicketFieldKey = keyof CreateTicketPayload | keyof UpdateTicketPayload;
 
 export type ticketState = {
     errors: Partial<Record<TicketFieldKey, string[]>>;
@@ -141,4 +170,102 @@ export async function createTicket(_prevState: ticketState, formData: FormData):
         
     }
     
+}
+
+export async function updateTicket(id: string, _prevState: ticketState, formData: FormData): Promise<ticketState> {
+    const validatedFields = updateTicketSchema.safeParse({
+        status: formData.get("status"),
+        est_time_repair: formData.get("est_time_repair"),
+        technician_notes: formData.get("technician_notes"),
+        repair_cost: formData.get("repair_cost"),
+        parts_cost: formData.get("parts_cost")
+    });
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            success: false,
+            message: "Please fix the highlighted fields.",
+        };
+    }
+
+    const { status, est_time_repair, technician_notes, repair_cost, parts_cost } = validatedFields.data;
+console.table({id, status, est_time_repair, technician_notes, repair_cost, parts_cost });
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { error } = await supabase.rpc('update_ticket', {
+        p_id: id,
+        p_status: status,
+        p_est_time_repair: est_time_repair ?? null, 
+        p_technician_notes: technician_notes ?? null,
+        p_repair_cost: repair_cost ?? null,
+        p_parts_cost: parts_cost ?? null
+    })
+
+
+    if (error) {
+        console.error('Error updating ticket:', error.message)
+        return {
+            errors: {},
+            success: false,
+            message: "Failed to update ticket. Please try again.",
+        };
+    } else {
+        return {
+            errors: {},
+            success: true,
+            message: "Ticket updated successfully.",
+        }
+        
+    }
+}    
+
+export async function deleteTicket(id: string): Promise<ticketState> {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { error } = await supabase.rpc('delete_ticket', {
+        p_id: id
+    })
+
+    if (error) {
+        console.error('Error deleting ticket:', error.message)
+        return {
+            errors: {},
+            success: false,
+            message: "Failed to delete ticket. Please try again.",
+        };
+    } else {
+        return {
+            errors: {},
+            success: true,
+            message: "Ticket deleted successfully.",
+        };
+    }
+}
+
+export async function checkoutTicket(id: string, paid: boolean): Promise<ticketState> {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { error } = await supabase.rpc('checkout_ticket', {
+        p_id: id,
+        p_paid: paid
+    })
+
+    if (error) {
+        console.error('Error checking out ticket:', error.message)
+        return {
+            errors: {},
+            success: false,
+            message: "Failed to check out ticket. Please try again.",
+        };
+    } else {
+        return {
+            errors: {},
+            success: true,
+            message: "Ticket checked out successfully.",
+        };
+    }
 }

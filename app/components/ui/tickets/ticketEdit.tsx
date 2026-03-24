@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { TicketDetailsType, TicketStatus } from "@/app/lib/definitions";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/app/components/reusable/button";
 import { Card } from "@/app/components/reusable/card";
 import { Badge } from "@/app/components/reusable/badge";
@@ -19,61 +20,91 @@ import {
 } from "@/app/components/reusable/select";
 import { Label } from "@/app/components/reusable/label";
 import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/app/components/reusable/dialog";
+import { deleteTicket, updateTicket } from "@/app/utils/supabase/action";
+import type { ticketState } from "@/app/utils/supabase/action";
+import {
     ArrowLeft,
     Phone,
     Mail,
     Camera,
     PhilippinePeso,
     Save,
+    Trash,
 } from "lucide-react";
 import {
     getTicketAlertLevel,
     getTimeUntilDeadline,
 } from "@/app/utils/ticketUtils";
 import { statusSlugMap } from "@/app/utils/statusUtils";
+import { formatInTimeZone } from 'date-fns-tz';
+import { cookies } from "next/headers";
 
-type TicketEditFormValues = {
-    status: TicketStatus;
-    etr: string;
-    technician_notes: string;
-    repair_cost: string;
-    parts_cost: string;
-    tax: string;
-    paid: "true" | "false";
-};
-
-function toDateTimeLocalString(value?: Date): string {
+async function toDateTimeLocalString(value?: Date): Promise<string> {
+    const cookieStore = await cookies();
+    const timezoneFromCookie = cookieStore.get('timezone')?.value ?? 'UTC';
     if (!value) return "";
-    return new Date(value).toISOString().slice(0, 16);
+    const formatted = formatInTimeZone(
+        new Date(value),
+        `${timezoneFromCookie}`,
+        'yyyy-MM-dd\'T\'HH:mm'
+    );
+    return formatted;
 }
+
+const fieldError = (errors: ticketState["errors"], key: keyof ticketState["errors"]) =>
+    errors[key]?.[0] ?? null;
 
 export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
     const router = useRouter();
-    const [formValues, setFormValues] = useState<TicketEditFormValues>({
-        status: ticket.status,
-        etr: toDateTimeLocalString(ticket.etr),
-        technician_notes: ticket.technician_notes ?? "",
-        repair_cost: String(ticket.payment.repair_cost ?? 0),
-        parts_cost: String(ticket.payment.parts_cost ?? 0),
-        tax: String(ticket.payment.tax ?? 0),
-        paid: ticket.payment.paid ? "true" : "false",
-    });
-    const [fieldErrors, setFieldErrors] = useState<
-        Partial<Record<keyof TicketEditFormValues, string>>
-    >({});
-    const [submitError, setSubmitError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {
+        id,
+        ticket_number,
+        customer_name,
+        customer_phone,
+        customer_email,
+        device_type,
+        device_brand,
+        device_model,
+        issue_description,
+        photo,
+        created_at,
+        updated_at,
+        paid
+    } = ticket;
+    const [ status, setStatus ] = useState(ticket.status);
+    const [ est_time_repair, setEstTimeRepair ] = useState(ticket.est_time_repair);
+    const [ technician_notes, setTechnicianNotes ] = useState(ticket.technician_notes);
+    const [ repair_cost, setRepairCost ] = useState(ticket.repair_cost ?? 0);
+    const [ parts_cost, setPartsCost ] = useState(ticket.parts_cost ?? 0);
+
+    const initialState: ticketState = {
+        errors: {},
+        success: false,
+        message: null,
+    };
+    const updateTicketWithId = updateTicket.bind(null, id);
+    const [state, formAction, isPending] = useActionState(updateTicketWithId, initialState);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const alertLevel = getTicketAlertLevel({
-        etr: formValues.etr ? new Date(formValues.etr) : undefined,
-        status: formValues.status,
+        est_time_repair,
+        status,
     });
-    const parsedRepairCost = Number(formValues.repair_cost || 0);
-    const parsedPartsCost = Number(formValues.parts_cost || 0);
-    const parsedTax = Number(formValues.tax || 0);
+    const parsedRepairCost = Number(repair_cost ?? 0);
+    const parsedPartsCost = Number(parts_cost ?? 0);
     const computedTotal = useMemo(
-        () => parsedRepairCost + parsedPartsCost + parsedTax,
-        [parsedRepairCost, parsedPartsCost, parsedTax],
+        () => parsedRepairCost + parsedPartsCost,
+        [parsedRepairCost, parsedPartsCost],
     );
 
     const alertBorders = {
@@ -82,90 +113,54 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
         danger: "border-red-400 border-2",
     };
 
-    const validateForm = () => {
-        const errors: Partial<Record<keyof TicketEditFormValues, string>> = {};
-
-        if (!Object.keys(statusSlugMap).includes(formValues.status)) {
-            errors.status = "Please select a valid status.";
+    useEffect(() => {
+        if (!state.message) {
+            return;
         }
 
-        if (formValues.etr && Number.isNaN(new Date(formValues.etr).getTime())) {
-            errors.etr = "Please enter a valid date and time.";
+        if (state.success) {
+            toast.success(state.message);
+            const timeout = setTimeout(() => {
+                router.push(`/ticket/${ticket_number}`);
+                router.refresh();
+            }, 700);
+
+            return () => clearTimeout(timeout);
         }
 
-        if (Number.isNaN(parsedRepairCost) || parsedRepairCost < 0) {
-            errors.repair_cost = "Repair cost must be 0 or higher.";
-        }
-        if (Number.isNaN(parsedPartsCost) || parsedPartsCost < 0) {
-            errors.parts_cost = "Parts cost must be 0 or higher.";
-        }
-        if (Number.isNaN(parsedTax) || parsedTax < 0) {
-            errors.tax = "Tax must be 0 or higher.";
+        toast.error(state.message);
+    }, [router, state.message, state.success, ticket_number]);
+
+    const handleDeleteTicket = async () => {
+        if (isDeleting) {
+            return;
         }
 
-        setFieldErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
+        setIsDeleting(true);
+        const result = await deleteTicket(id);
 
-    const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setSubmitError(null);
-
-        if (!validateForm()) return;
-
-        setIsSubmitting(true);
-        try {
-            const response = await fetch(`/api/tickets/${ticket.id}`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    status: formValues.status,
-                    etr: formValues.etr ? new Date(formValues.etr).toISOString() : null,
-                    technician_notes: formValues.technician_notes.trim() || null,
-                    payment: {
-                        repair_cost: parsedRepairCost,
-                        parts_cost: parsedPartsCost,
-                        tax: parsedTax,
-                        paid: formValues.paid === "true",
-                    },
-                }),
-            });
-
-            if (!response.ok) {
-                const data = (await response.json()) as {
-                    error?: string;
-                    fieldErrors?: Partial<Record<keyof TicketEditFormValues, string>>;
-                };
-                setSubmitError(data.error ?? "Failed to update ticket.");
-                if (data.fieldErrors) {
-                    setFieldErrors((previous) => ({
-                        ...previous,
-                        ...data.fieldErrors,
-                    }));
-                }
-                return;
-            }
-
-            router.push(`/ticket/${ticket.id}`);
-        } catch {
-            setSubmitError("Something went wrong while saving the ticket.");
-        } finally {
-            setIsSubmitting(false);
+        if (result.success) {
+            toast.success(result.message ?? "Ticket deleted successfully.");
+            setIsDeleteDialogOpen(false);
+            router.replace(`/${status}`);
+            return;
         }
+
+        toast.error(result.message ?? "Failed to delete ticket. Please try again.");
+        setIsDeleting(false);
     };
 
     return (
         <form
-            onSubmit={onSubmit}
+            action={formAction}
             className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50"
         >
+            <input type="hidden" name="status" value={status} />
             <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
                 <div className="max-w-6xl mx-auto px-6 py-5">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <Link href={`/ticket/${ticket.id}`}>
+                            <Link href={`/ticket/${ticket_number}`}>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -178,31 +173,90 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                             </Link>
                             <div>
                                 <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                                    {ticket.ticket_number}
+                                    {ticket_number}
                                 </h1>
                                 <p className="text-sm text-slate-600">
-                                    {ticket.customer_name}
+                                    {customer_name}
                                 </p>
                             </div>
                         </div>
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-blue-500/30"
-                        >
-                            <Save className="size-4 mr-2" />
-                            {isSubmitting ? "Saving..." : "Save Changes"}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Dialog
+                                open={isDeleteDialogOpen}
+                                onOpenChange={(open) => {
+                                    if (isDeleting && !open) {
+                                        return;
+                                    }
+                                    setIsDeleteDialogOpen(open);
+                                }}
+                            >
+                                <DialogTrigger asChild>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        className="hover:bg-red-700"
+                                        type="button"
+                                        disabled={isDeleting}
+                                    >
+                                        <Trash className="size-4 md:mr-2" />
+                                        <span className="hidden md:block">
+                                            Delete
+                                        </span>
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Delete this ticket permanently?</DialogTitle>
+                                        <DialogDescription>
+                                            You are about to delete ticket {ticket_number}. This action
+                                            cannot be undone and all tracking data for this ticket will be
+                                            removed.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <DialogClose asChild>
+                                            <Button type="button" variant="outline" disabled={isDeleting}>
+                                                Cancel
+                                            </Button>
+                                        </DialogClose>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            onClick={handleDeleteTicket}
+                                            disabled={isDeleting}
+                                        >
+                                            {isDeleting ? "Deleting..." : "Yes, delete ticket"}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                            <Button
+                                type="submit"
+                                disabled={isPending}
+                                className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-blue-500/30"
+                            >
+                                <Save className="size-4 md:mr-2" />
+                                <span className="hidden md:block">
+                                    {isPending ? "Saving..." : "Save Changes"}
+                                </span>
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </header>
 
             <main className="max-w-6xl mx-auto px-6 py-8">
-                {submitError && (
-                    <div className="mb-6 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {submitError}
-                    </div>
-                )}
+                {state.message ? (
+                    <p
+                        className={`mb-6 rounded-lg border px-3 py-2 text-sm ${
+                            Object.keys(state.errors).length > 0
+                                ? "border-red-200 bg-red-50 text-red-700"
+                                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        }`}
+                    >
+                        {state.message}
+                    </p>
+                ) : null}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-4">
@@ -228,17 +282,14 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                 <div className="space-y-2">
                                     <Label htmlFor="status">Current Status</Label>
                                     <Select
-                                        value={formValues.status}
+                                        value={status}
                                         onValueChange={(value) =>
-                                            setFormValues((previous) => ({
-                                                ...previous,
-                                                status: value as TicketStatus,
-                                            }))
+                                            setStatus(value as TicketStatus)
                                         }
                                     >
                                         <SelectTrigger
                                             id="status"
-                                            aria-invalid={Boolean(fieldErrors.status)}
+                                            aria-invalid={Boolean(fieldError(state.errors, "status"))}
                                         >
                                             <SelectValue placeholder="Select status" />
                                         </SelectTrigger>
@@ -255,11 +306,11 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                             )}
                                         </SelectContent>
                                     </Select>
-                                    {fieldErrors.status && (
+                                    {fieldError(state.errors, "status") ? (
                                         <p className="text-xs text-red-600">
-                                            {fieldErrors.status}
+                                            {fieldError(state.errors, "status")}
                                         </p>
-                                    )}
+                                    ) : null}
                                 </div>
 
                                 <div className="space-y-2">
@@ -267,37 +318,35 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                     <div className="flex items-center justify-between gap-3">
                                         <Input
                                             id="etr"
+                                            name="est_time_repair"
                                             type="datetime-local"
-                                            value={formValues.etr}
-                                            onChange={(event) =>
-                                                setFormValues((previous) => ({
-                                                    ...previous,
-                                                    etr: event.target.value,
-                                                }))
-                                            }
-                                            aria-invalid={Boolean(fieldErrors.etr)}
+                                            value={est_time_repair ? formatInTimeZone(new Date(est_time_repair), 'Asia/Manila', 'yyyy-MM-dd\'T\'HH:mm') : ''}
+                                            onChange={(event) => {
+                                                if (!event.target.value) {
+                                                    setEstTimeRepair(undefined);
+                                                    return;
+                                                }
+                                                setEstTimeRepair(new Date(event.target.value));
+                                            }}
+                                            aria-invalid={Boolean(fieldError(state.errors, "est_time_repair"))}
                                         />
                                         <Badge
                                             variant={
                                                 alertLevel === "danger"
                                                     ? "destructive"
                                                     : alertLevel === "warning"
-                                                      ? "outline"
-                                                      : "secondary"
+                                                        ? "outline"
+                                                        : "secondary"
                                             }
                                         >
-                                            {getTimeUntilDeadline(
-                                                formValues.etr
-                                                    ? new Date(formValues.etr)
-                                                    : undefined,
-                                            )}
+                                            {getTimeUntilDeadline(est_time_repair)}
                                         </Badge>
                                     </div>
-                                    {fieldErrors.etr && (
+                                    {fieldError(state.errors, "est_time_repair") ? (
                                         <p className="text-xs text-red-600">
-                                            {fieldErrors.etr}
+                                            {fieldError(state.errors, "est_time_repair")}
                                         </p>
-                                    )}
+                                    ) : null}
                                 </div>
                             </div>
                         </Card>
@@ -311,15 +360,15 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                     <Label className="text-gray-600">
                                         Device Type
                                     </Label>
-                                    <Input value={ticket.device_type} disabled />
+                                    <Input value={device_type} disabled />
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-gray-600">Brand</Label>
-                                    <Input value={ticket.device_brand} disabled />
+                                    <Input value={device_brand} disabled />
                                 </div>
                                 <div className="col-span-2 space-y-2">
                                     <Label className="text-gray-600">Model</Label>
-                                    <Input value={ticket.device_model} disabled />
+                                    <Input value={device_model ?? ""} disabled />
                                 </div>
                             </div>
                         </Card>
@@ -328,7 +377,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                             <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
                                 Issue Description
                             </h2>
-                            <Textarea value={ticket.issue_description} disabled />
+                            <Textarea value={issue_description} disabled />
                         </Card>
 
                         <Card className="p-6">
@@ -338,22 +387,18 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                             <div className="space-y-2">
                                 <Textarea
                                     id="technician-notes"
-                                    value={formValues.technician_notes}
-                                    onChange={(event) =>
-                                        setFormValues((previous) => ({
-                                            ...previous,
-                                            technician_notes: event.target.value,
-                                        }))
-                                    }
+                                    name="technician_notes"
+                                    value={technician_notes ?? ""}
+                                    onChange={(event) => setTechnicianNotes(event.target.value)}
                                     placeholder="Add notes about the repair process..."
                                     rows={4}
-                                    aria-invalid={Boolean(fieldErrors.technician_notes)}
+                                    aria-invalid={Boolean(fieldError(state.errors, "technician_notes"))}
                                 />
-                                {fieldErrors.technician_notes && (
+                                {fieldError(state.errors, "technician_notes") ? (
                                     <p className="text-xs text-red-600">
-                                        {fieldErrors.technician_notes}
+                                        {fieldError(state.errors, "technician_notes")}
                                     </p>
-                                )}
+                                ) : null}
                             </div>
                         </Card>
 
@@ -361,9 +406,9 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                             <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
                                 Photos
                             </h2>
-                            {ticket.photo ? (
+                            {photo ? (
                                 <Image
-                                    src={ticket.photo}
+                                    src={photo}
                                     alt="Device Photo"
                                     width={1280}
                                     height={720}
@@ -388,21 +433,21 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                             <div className="space-y-3">
                                 <div className="space-y-2">
                                     <Label className="text-gray-600">Name</Label>
-                                    <Input value={ticket.customer_name} disabled />
+                                    <Input value={customer_name} disabled />
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-gray-600">Phone</Label>
                                     <div className="flex items-center gap-2">
                                         <Phone className="size-4 text-gray-400" />
-                                        <Input value={ticket.customer_phone} disabled />
+                                        <Input value={customer_phone} disabled />
                                     </div>
                                 </div>
-                                {ticket.customer_email && (
+                                {customer_email && (
                                     <div className="space-y-2">
                                         <Label className="text-gray-600">Email</Label>
                                         <div className="flex items-center gap-2">
                                             <Mail className="size-4 text-gray-400" />
-                                            <Input value={ticket.customer_email} disabled />
+                                            <Input value={customer_email} disabled />
                                         </div>
                                     </div>
                                 )}
@@ -445,26 +490,28 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                         <PhilippinePeso className="size-4 text-gray-400" />
                                         <Input
                                             id="repair-cost"
+                                            name="repair_cost"
                                             type="number"
                                             min={0}
                                             step="0.01"
-                                            value={formValues.repair_cost}
-                                            onChange={(event) =>
-                                                setFormValues((previous) => ({
-                                                    ...previous,
-                                                    repair_cost: event.target.value,
-                                                }))
-                                            }
+                                            value={repair_cost ?? ""}
+                                            onChange={(event) => {
+                                                if (!event.target.value) {
+                                                    setRepairCost(0);
+                                                    return;
+                                                }
+                                                setRepairCost(Number(event.target.value));
+                                            }}
                                             aria-invalid={Boolean(
-                                                fieldErrors.repair_cost,
+                                                fieldError(state.errors, "repair_cost"),
                                             )}
                                         />
                                     </div>
-                                    {fieldErrors.repair_cost && (
+                                    {fieldError(state.errors, "repair_cost") ? (
                                         <p className="text-xs text-red-600">
-                                            {fieldErrors.repair_cost}
+                                            {fieldError(state.errors, "repair_cost")}
                                         </p>
-                                    )}
+                                    ) : null}
                                 </div>
 
                                 <div className="space-y-2">
@@ -473,52 +520,43 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                         <PhilippinePeso className="size-4 text-gray-400" />
                                         <Input
                                             id="parts-cost"
+                                            name="parts_cost"
                                             type="number"
                                             min={0}
                                             step="0.01"
-                                            value={formValues.parts_cost}
-                                            onChange={(event) =>
-                                                setFormValues((previous) => ({
-                                                    ...previous,
-                                                    parts_cost: event.target.value,
-                                                }))
-                                            }
+                                            value={parts_cost ?? ""}
+                                            onChange={(event) => {
+                                                if (!event.target.value) {
+                                                    setPartsCost(0);
+                                                    return;
+                                                }
+                                                setPartsCost(Number(event.target.value));
+                                            }}
                                             aria-invalid={Boolean(
-                                                fieldErrors.parts_cost,
+                                                fieldError(state.errors, "parts_cost"),
                                             )}
                                         />
                                     </div>
-                                    {fieldErrors.parts_cost && (
+                                    {fieldError(state.errors, "parts_cost") ? (
                                         <p className="text-xs text-red-600">
-                                            {fieldErrors.parts_cost}
+                                            {fieldError(state.errors, "parts_cost")}
                                         </p>
-                                    )}
+                                    ) : null}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="tax">Tax</Label>
+                                    <Label htmlFor="total">Total</Label>
                                     <div className="flex items-center gap-2">
                                         <PhilippinePeso className="size-4 text-gray-400" />
                                         <Input
-                                            id="tax"
+                                            id="total"
                                             type="number"
                                             min={0}
                                             step="0.01"
-                                            value={formValues.tax}
-                                            onChange={(event) =>
-                                                setFormValues((previous) => ({
-                                                    ...previous,
-                                                    tax: event.target.value,
-                                                }))
-                                            }
-                                            aria-invalid={Boolean(fieldErrors.tax)}
+                                            value={String(computedTotal)}
+                                            disabled
                                         />
                                     </div>
-                                    {fieldErrors.tax && (
-                                        <p className="text-xs text-red-600">
-                                            {fieldErrors.tax}
-                                        </p>
-                                    )}
                                 </div>
 
                                 <div className="space-y-2">
@@ -534,34 +572,14 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                         disabled
                                     />
                                 </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="paid">Payment Status</Label>
-                                    {/* <Select
-                                        value={formValues.paid}
-                                        onValueChange={(value) =>
-                                            setFormValues((previous) => ({
-                                                ...previous,
-                                                paid: value as "true" | "false",
-                                            }))
-                                        }
-                                    >
-                                        <SelectTrigger id="paid">
-                                            <SelectValue placeholder="Select payment status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="false">
-                                                Unpaid
-                                            </SelectItem>
-                                            <SelectItem value="true">
-                                                Paid
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select> */}
-                                    <Badge variant={ticket.payment.paid ? 'default' : 'secondary'} className="w-full justify-center">
-                                        {ticket.payment.paid ? 'Paid' : 'Unpaid'}
-                                    </Badge>
-                                </div>
+                                <Badge
+                                    variant={
+                                        paid ? "default" : "secondary"
+                                    }
+                                    className="w-full justify-center"
+                                >
+                                    {paid ? "Paid" : "Unpaid"}
+                                </Badge>
                             </div>
                         </Card>
 
@@ -575,9 +593,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                         Created
                                     </Label>
                                     <Input
-                                        value={new Date(
-                                            ticket.timeline.created_at,
-                                        ).toLocaleString()}
+                                        value={new Date(created_at).toLocaleString()}
                                         disabled
                                     />
                                 </div>
@@ -586,9 +602,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                         Last Updated
                                     </Label>
                                     <Input
-                                        value={new Date(
-                                            ticket.timeline.updated_at,
-                                        ).toLocaleString()}
+                                        value={new Date(updated_at).toLocaleString()}
                                         disabled
                                     />
                                 </div>

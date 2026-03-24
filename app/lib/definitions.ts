@@ -37,7 +37,6 @@ export interface TicketType {
     updated_at: Date;
     repair_cost: number;
     parts_cost: number;
-    tax: number;
     total_cost: number;
     paid: boolean;
     status: TicketStatus;
@@ -63,4 +62,19 @@ export interface TicketDetailsType {
     total_cost: number;
     paid: boolean;
     status: TicketStatus;
+}
+
+export interface TicketCheckoutType {
+    id: string;
+    ticket_number: string;
+    customer_name: string;
+    customer_phone: string;
+    device_type: DeviceType;
+    device_brand: string;
+    device_model: string;
+    issue_description: string;
+    repair_cost: number;
+    parts_cost: number;
+    total_cost: number;
+    paid: boolean;
 }

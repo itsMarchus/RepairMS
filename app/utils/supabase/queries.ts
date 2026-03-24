@@ -51,3 +51,19 @@ export const getTicketDetailsByNumber = async (ticketNumber: string) => {
 
     return { success: true, data: updatedData }
 }
+
+export const getTicketCheckoutDetails = async (ticketNumber: string) => {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase.rpc('get_ticket_checkout_details', {
+        p_ticket_number: ticketNumber
+    })
+    
+    if (error) {
+        console.error('Failed to get ticket checkout details:', error)
+        return { success: false, error: error.message }
+    }
+
+    return { success: true, data: data[0] }
+}
