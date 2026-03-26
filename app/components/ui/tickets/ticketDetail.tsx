@@ -319,7 +319,7 @@ export default async function TicketDetails({
                                     </p>
                                 </div>
                                 <Link
-                                    href={`/customer/${ticket_number}`}
+                                    href={`/portal/${ticket_number}`}
                                     target="_blank"
                                 >
                                     <Button
