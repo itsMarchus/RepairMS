@@ -1,7 +1,7 @@
 import { updateSession } from "@/app/utils/supabase/middleware";
 import { NextRequest, NextResponse } from "next/server";
 
-const AUTH_PATHS = ["/login", "/auth"];
+const PUBLIC_PATHS = ["/login", "/auth", "/portal"];
 
 const copyCookies = (source: NextResponse, target: NextResponse) => {
     source.cookies.getAll().forEach((cookie) => {
@@ -12,9 +12,9 @@ const copyCookies = (source: NextResponse, target: NextResponse) => {
 export async function middleware(request: NextRequest) {
     const { response, user } = await updateSession(request);
     const { pathname, search } = request.nextUrl;
-    const isAuthPath = AUTH_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+    const isPublicPath = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
-    if (!user && !isAuthPath) {
+    if (!user && !isPublicPath) {
         const loginUrl = request.nextUrl.clone();
         loginUrl.pathname = "/login";
         loginUrl.searchParams.set("next", `${pathname}${search}`);
