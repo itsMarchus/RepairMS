@@ -3,8 +3,6 @@
 import { createClient } from '@/app/utils/supabase/server';
 import { cookies } from 'next/headers';
 import { TicketStatus } from '@/app/lib/definitions';
-import { formatInTimeZone } from 'date-fns-tz';
-import { parseISO } from 'date-fns';
 
 export const getTicketsByStatus = async (status: TicketStatus) => {
     const cookieStore = await cookies();
@@ -34,16 +32,7 @@ export const getTicketDetailsByNumber = async (ticketNumber: string) => {
         console.error('Failed to get ticket details:', error)
         return { success: false, error: error.message }
     }
-//     console.log(data[0].est_time_repair);
-// console.log(parseISO(data[0].est_time_repair));
-    // if (data[0].est_time_repair) {
-    //     data[0].est_time_repair = formatInTimeZone(
-    //         parseISO(data[0].est_time_repair), 
-    //         cookieStore.get('timezone')?.value ?? 'UTC', 
-    //         'yyyy-MM-dd\'T\'HH:mm:ssXXX'
-    //     );
-    // }
-
+console.log(data);
     const photoName = data[0]?.photo;
     if (!photoName || photoName === null) {
         return { success: true, data: data[0] }
@@ -66,7 +55,7 @@ export const getTicketDetailsByNumber = async (ticketNumber: string) => {
 export const getTicketCheckoutDetails = async (ticketNumber: string) => {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
-
+console.log(ticketNumber);
     const { data, error } = await supabase.rpc('get_ticket_checkout_details', {
         p_ticket_number: ticketNumber
     })
@@ -74,6 +63,26 @@ export const getTicketCheckoutDetails = async (ticketNumber: string) => {
     if (error) {
         console.error('Failed to get ticket checkout details:', error)
         return { success: false, error: error.message }
+    }
+console.log(data);
+    return { success: true, data: data[0] }
+}
+
+export const getTicketPortalDetails = async (ticketNumber: string) => {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase.rpc('get_ticket_in_portal', {
+        p_ticket_number: ticketNumber
+    })
+
+    if (error) {
+        console.error('Failed to get ticket portal details:', error)
+        return { success: false, error: error.message }
+    }
+
+    if (!data || data.length === 0 || !data[0]) {
+        return { success: false, error: "Ticket not found." };
     }
 
     return { success: true, data: data[0] }
