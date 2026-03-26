@@ -78,3 +78,16 @@ export interface TicketCheckoutType {
     total_cost: number;
     paid: boolean;
 }
+
+export interface TicketPortalType {
+    ticket_number: string;
+    customer_name: string;
+    status: TicketStatus;
+    device_type: DeviceType;
+    device_brand: string;
+    device_model: string;
+    issue_description: string;
+    est_time_repair?: Date | string;
+    // business_number
+    // business_address
+}
