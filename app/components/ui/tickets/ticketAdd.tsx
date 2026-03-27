@@ -214,7 +214,7 @@ export default function TicketAdd() {
                             </Button>
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
                                 New Repair Ticket
                             </h1>
                             <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -226,7 +226,7 @@ export default function TicketAdd() {
             </header>
 
             <main className="max-w-4xl mx-auto px-6 py-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6"> 
                     <div className="space-y-6">
                         {state.message ? (
                             <p

@@ -43,14 +43,21 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
     const alertColors = {
         normal: "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-sky-300",
         warning:
-            "bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-300 hover:border-amber-400 shadow-amber-100",
-        danger: "bg-gradient-to-br from-red-50 to-rose-50 border-red-300 hover:border-red-400 shadow-red-100",
+            "bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-700/70 hover:border-amber-400 dark:hover:border-amber-500",
+        danger:
+            "bg-white dark:bg-slate-900 border-red-300 dark:border-red-700/70 hover:border-red-400 dark:hover:border-red-500",
     };
 
     const alertGlow = {
         normal: "",
-        warning: "shadow-lg shadow-amber-200/50",
-        danger: "shadow-lg shadow-red-200/50",
+        warning: "shadow-md shadow-amber-200/40 dark:shadow-amber-900/20",
+        danger: "shadow-md shadow-red-200/40 dark:shadow-red-900/20",
+    };
+
+    const deadlineAccent = {
+        normal: "bg-slate-50 dark:bg-slate-800/80 border-slate-100 dark:border-slate-700",
+        warning: "bg-amber-50 dark:bg-amber-900/15 border-amber-200 dark:border-amber-800/60",
+        danger: "bg-red-50 dark:bg-red-900/15 border-red-200 dark:border-red-800/60",
     };
 
     return (
@@ -69,10 +76,18 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
                     </div>
                     {alertLevel !== "normal" && (
                         <div
-                            className={`p-1 rounded-full ${alertLevel === "warning" ? "bg-amber-100" : "bg-red-100"}`}
+                            className={`p-1 rounded-full ${
+                                alertLevel === "warning"
+                                    ? "bg-amber-100 dark:bg-amber-900/30"
+                                    : "bg-red-100 dark:bg-red-900/30"
+                            }`}
                         >
                             <AlertCircle
-                                className={`size-4 ${alertLevel === "warning" ? "text-amber-600" : "text-red-600"}`}
+                                className={`size-4 ${
+                                    alertLevel === "warning"
+                                        ? "text-amber-600 dark:text-amber-300"
+                                        : "text-red-600 dark:text-red-300"
+                                }`}
                             />
                         </div>
                     )}
@@ -93,7 +108,9 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs mt-3 px-2 py-1.5 bg-slate-50 dark:bg-slate-800/80 rounded-lg border border-slate-100 dark:border-slate-700">
+                    <div
+                        className={`flex items-center gap-2 text-xs mt-3 px-2 py-1.5 rounded-lg border ${deadlineAccent[alertLevel]}`}
+                    >
                         <Clock className="size-3.5 text-slate-600 dark:text-slate-300" />
                         <span className="font-medium text-slate-700 dark:text-slate-200">
                             {getTimeUntilDeadline(

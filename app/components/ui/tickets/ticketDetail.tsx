@@ -82,7 +82,7 @@ export default async function TicketDetails({
                                 </Button>
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
                                     {ticket_number}
                                 </h1>
                                 <p className="text-sm text-slate-600 dark:text-slate-400">

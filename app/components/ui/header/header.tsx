@@ -230,7 +230,7 @@ export default function Header() {
                                     // }}  change this to non clickable if already in
                                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors relative ${
                                         isActive
-                                            ? "border-blue-600 text-blue-600 bg-blue-50/50"
+                                            ? "bg-blue-50 text-blue-700"
                                             : "border-transparent text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/70"
                                     }`}
                                 >

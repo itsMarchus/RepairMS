@@ -1,4 +1,4 @@
-import { TicketPortalType, TicketStatus } from "@/app/lib/definitions";
+import { TicketPortalType, TicketStatus, StoreDetailsType } from "@/app/lib/definitions";
 import { Progress } from "@/app/components/reusable/progress";
 import {
     ArrowLeft,
@@ -16,8 +16,6 @@ import { Button } from "@/app/components/reusable/button";
 import Link from "next/link";
 import { convertToLocalTimeReadable } from "@/app/utils/timezone";
 import { getTicketAlertLevel, getTimeUntilDeadline } from "@/app/utils/ticketUtils";
-// import { useRouter } from "next/navigation";
-// import { formatInTimeZone } from "date-fns-tz";
 
 const statusOrder: TicketStatus[] = [
     "queued",
@@ -66,7 +64,7 @@ const getStatusIcon = (index: number, currentStatusIndex: number) => {
     return <Circle className="size-6 text-gray-300" />;
 };
 
-export default async function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
+export default async function TicketPortal({ ticket, store }: { ticket: TicketPortalType, store: StoreDetailsType }) {
     // const router = useRouter();
     const {
         ticket_number,
@@ -79,6 +77,11 @@ export default async function TicketPortal({ ticket }: { ticket: TicketPortalTyp
         est_time_repair,
     } = ticket;
 
+    const {
+        physical_address,
+        contact_number,
+    } = store;
+
     const normalizedStatus = statusOrder.includes(status)
         ? status
         : "queued";
@@ -90,9 +93,9 @@ export default async function TicketPortal({ ticket }: { ticket: TicketPortalTyp
 
     const estimatedCompletion = est_time_repair
         ? await convertToLocalTimeReadable(
-              est_time_repair as Date,
-              "EEEE, MMMM d, yyyy 'at' h:mm a",
-          )
+            est_time_repair as Date,
+            "EEEE, MMMM d, yyyy 'at' h:mm a",
+        )
         : "No estimated completion yet";
 
     const alertLevel = getTicketAlertLevel({ est_time_repair, status });
@@ -283,7 +286,8 @@ export default async function TicketPortal({ ticket }: { ticket: TicketPortalTyp
                 )}
 
                 <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-400">
-                    <p>Questions? Contact us at 09123456789</p>
+                    <p>Questions? Contact us at {contact_number}</p>
+                    <p>{physical_address}</p>
                     <p className="mt-1">Tracking ID: {ticket_number}</p>
                 </div>
             </div>
