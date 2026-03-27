@@ -91,3 +91,10 @@ export interface TicketPortalType {
     // business_number
     // business_address
 }
+
+export interface StoreDetailsType {
+    id: string;
+    shop_name: string;
+    physical_address: string;
+    contact_number: string;
+}
