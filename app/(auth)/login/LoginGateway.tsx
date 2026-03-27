@@ -7,7 +7,7 @@ import { Label } from "@/app/components/reusable/label";
 import { ArrowLeft, LogIn, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { loginWithPassword } from "@/app/(auth)/login/actions";
+import { loginWithPassword, searchTicket } from "@/app/utils/supabase/action";
 
 type GatewayMode = "main" | "login" | "track";
 
@@ -21,13 +21,14 @@ export default function LoginGateway({ nextPath, error }: LoginGatewayProps) {
     const [mode, setMode] = useState<GatewayMode>("main");
     const [ticketNumber, setTicketNumber] = useState("");
     const [ticketError, setTicketError] = useState<string | null>(null);
+    const [isSearchingTicket, setIsSearchingTicket] = useState(false);
 
     const normalizedTicket = useMemo(
         () => ticketNumber.trim().toLowerCase(),
         [ticketNumber],
     );
 
-    const handleTrackTicket = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleTrackTicket = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         if (!normalizedTicket) {
@@ -36,6 +37,20 @@ export default function LoginGateway({ nextPath, error }: LoginGatewayProps) {
         }
 
         setTicketError(null);
+        setIsSearchingTicket(true);
+
+        const result = await searchTicket(normalizedTicket);
+        console.log(result);
+        if (!result.success || !result.data) {
+            setTicketError(
+                result.error ??
+                    "Ticket not found. Please check your ticket number and try again.",
+            );
+            setIsSearchingTicket(false);
+            return;
+        }
+
+        setIsSearchingTicket(false);
         router.push(`/portal/${normalizedTicket}`);
     };
 
@@ -172,6 +187,7 @@ export default function LoginGateway({ nextPath, error }: LoginGatewayProps) {
                             value={ticketNumber}
                             onChange={(event) => setTicketNumber(event.target.value)}
                             placeholder="e.g. tkp000123"
+                            disabled={isSearchingTicket}
                             required
                         />
                         {ticketError ? (
@@ -180,10 +196,11 @@ export default function LoginGateway({ nextPath, error }: LoginGatewayProps) {
                     </div>
                     <Button
                         type="submit"
+                        disabled={isSearchingTicket}
                         className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-blue-500/30"
                     >
                         <Search className="size-4" />
-                        Search ticket
+                        {isSearchingTicket ? "Searching..." : "Search ticket"}
                     </Button>
                 </form>
             </CardContent>

@@ -66,7 +66,7 @@ const getStatusIcon = (index: number, currentStatusIndex: number) => {
     return <Circle className="size-6 text-gray-300" />;
 };
 
-export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
+export default async function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
     // const router = useRouter();
     const {
         ticket_number,
@@ -88,21 +88,21 @@ export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
             ? ((currentStatusIndex + 1) / statusOrder.length) * 100
             : 0;
 
-    const estimatedCompletion = est_time_repair ? convertToLocalTimeReadable(est_time_repair as Date, "EEEE, MMMM d, yyyy 'at' h:mm a") : "No estimated completion yet";
+    const estimatedCompletion = est_time_repair
+        ? await convertToLocalTimeReadable(
+              est_time_repair as Date,
+              "EEEE, MMMM d, yyyy 'at' h:mm a",
+          )
+        : "No estimated completion yet";
 
     const alertLevel = getTicketAlertLevel({ est_time_repair, status });
-    const alertBorders = {
-        normal: "border-gray-200",
-        warning: "border-yellow-400 border-2",
-        danger: "border-red-400 border-2",
-    };
     
     return (
-        <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100 p-4 md:p-8">
+        <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4 md:p-8">
             <div className="max-w-3xl mx-auto">
                 <div className="mb-6">
                     <Link href="/login">
-                        <Button variant="ghost" size="sm" className="hover:bg-blue-100">
+                        <Button variant="ghost" size="sm" className="hover:bg-blue-100 dark:hover:bg-slate-800">
                             <ArrowLeft className="size-4 mr-2" />
                             Back
                         </Button>
@@ -127,13 +127,13 @@ export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
                             </svg>
                         </div>
                     </div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-2">
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent mb-2">
                         ToyexFix
                     </h1>
-                    <p className="text-slate-600 text-lg">Track Your Repair</p>
+                    <p className="text-slate-600 dark:text-slate-400 text-lg">Track Your Repair</p>
                 </div>
 
-                <Card className="p-6 md:p-8 mb-6 shadow-2xl border-slate-200 bg-white/90 backdrop-blur-sm">
+                <Card className="p-6 md:p-8 mb-6 shadow-2xl border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm">
                     <div className="text-center mb-6">
                         <Badge
                             variant="outline"
@@ -141,10 +141,10 @@ export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
                         >
                             {ticket_number}
                         </Badge>
-                        <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
                             Hello, {customer_name}!
                         </h2>
-                        <p className="text-slate-600">
+                        <p className="text-slate-600 dark:text-slate-300">
                             Your {device_brand} {device_model} is currently being
                             repaired
                         </p>
@@ -152,7 +152,7 @@ export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
 
                     <div className="mb-8">
                         <div className="flex justify-between text-sm mb-2">
-                            <span className="text-gray-600">Progress</span>
+                            <span className="text-gray-600 dark:text-gray-400">Progress</span>
                             <span className="font-semibold">
                                 {Math.round(progressPercentage)}%
                             </span>
@@ -160,16 +160,16 @@ export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
                         <Progress value={progressPercentage} className="h-3" />
                     </div>
 
-                    <Card className="p-6 bg-gradient-to-br from-sky-50 to-blue-50 border-sky-200 mb-8 shadow-lg">
+                    <Card className="p-6 bg-gradient-to-br from-sky-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 border-sky-200 dark:border-slate-700 mb-8 shadow-lg">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/30">
                                 {getStageIcon(normalizedStatus)}
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-bold text-lg text-slate-800">
+                                <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">
                                     {statusLabels[normalizedStatus]}
                                 </h3>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-sm text-slate-600 dark:text-slate-300">
                                     Current stage of your repair
                                 </p>
                             </div>
@@ -192,7 +192,7 @@ export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
                                             className={`w-0.5 h-12 ${
                                                 index < currentStatusIndex
                                                     ? "bg-green-500"
-                                                    : "bg-gray-300"
+                                                    : "bg-gray-300 dark:bg-slate-700"
                                             }`}
                                         />
                                     )}
@@ -207,7 +207,7 @@ export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
                                     <h4 className="font-medium">
                                         {statusLabels[timelineStatus]}
                                     </h4>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
                                         {index < currentStatusIndex &&
                                             "Completed"}
                                         {index === currentStatusIndex &&
@@ -221,33 +221,33 @@ export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
                     </div>
                 </Card>
 
-                <Card className="p-6 mb-6 shadow-xl border-slate-200 bg-white/90 backdrop-blur-sm">
-                    <h3 className="font-bold mb-4 text-slate-800">Device Details</h3>
+                <Card className="p-6 mb-6 shadow-xl border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm">
+                    <h3 className="font-bold mb-4 text-slate-800 dark:text-slate-100">Device Details</h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                            <p className="text-gray-600">Device</p>
+                            <p className="text-gray-600 dark:text-gray-400">Device</p>
                             <p className="font-medium">{device_type}</p>
                         </div>
                         <div>
-                            <p className="text-gray-600">Brand & Model</p>
+                            <p className="text-gray-600 dark:text-gray-400">Brand & Model</p>
                             <p className="font-medium">
                                 {device_brand} {device_model}
                             </p>
                         </div>
                         <div className="col-span-2">
-                            <p className="text-gray-600">Issue</p>
+                            <p className="text-gray-600 dark:text-gray-400">Issue</p>
                             <p className="font-medium">{issue_description}</p>
                         </div>
                     </div>
                 </Card>
 
-                <Card className="p-6 mb-6 shadow-xl border-slate-200 bg-white/90 backdrop-blur-sm">
+                <Card className="p-6 mb-6 shadow-xl border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="font-bold mb-1 text-slate-800">
+                            <h3 className="font-bold mb-1 text-slate-800 dark:text-slate-100">
                                 Estimated Completion
                             </h3>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {estimatedCompletion}
                             </p>
                             <Badge
@@ -282,7 +282,7 @@ export default function TicketPortal({ ticket }: { ticket: TicketPortalType }) {
                     </Card>
                 )}
 
-                <div className="text-center mt-8 text-sm text-gray-600">
+                <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-400">
                     <p>Questions? Contact us at 09123456789</p>
                     <p className="mt-1">Tracking ID: {ticket_number}</p>
                 </div>
