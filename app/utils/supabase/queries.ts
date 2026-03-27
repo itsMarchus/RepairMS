@@ -32,7 +32,7 @@ export const getTicketDetailsByNumber = async (ticketNumber: string) => {
         console.error('Failed to get ticket details:', error)
         return { success: false, error: error.message }
     }
-console.log(data);
+
     const photoName = data[0]?.photo;
     if (!photoName || photoName === null) {
         return { success: true, data: data[0] }
@@ -55,7 +55,7 @@ console.log(data);
 export const getTicketCheckoutDetails = async (ticketNumber: string) => {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
-console.log(ticketNumber);
+
     const { data, error } = await supabase.rpc('get_ticket_checkout_details', {
         p_ticket_number: ticketNumber
     })
@@ -64,7 +64,7 @@ console.log(ticketNumber);
         console.error('Failed to get ticket checkout details:', error)
         return { success: false, error: error.message }
     }
-console.log(data);
+
     return { success: true, data: data[0] }
 }
 
@@ -86,4 +86,34 @@ export const getTicketPortalDetails = async (ticketNumber: string) => {
     }
 
     return { success: true, data: data[0] }
+}
+
+export const getStoreDetails = async () => {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase.rpc('get_store_details');
+
+    if (error) {
+        console.error('Failed to get store details:', error)
+        return { success: false, error: error.message }
+    }
+
+    return { success: true, data: data[0] };
+}
+
+export const getUserDetails = async (email: string) => {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase.rpc('get_profile_by_email', {
+        p_email: email
+    });
+
+    if (error) {
+        console.error('Failed to get user details:', error)
+        return { success: false, error: error.message }
+    }
+
+    return { success: true, data: data[0] };
 }
