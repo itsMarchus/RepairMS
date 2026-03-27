@@ -141,10 +141,10 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
     return (
         <form
             action={formAction}
-            className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50"
+            className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"
         >
             <input type="hidden" name="status" value={status} />
-            <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="max-w-6xl mx-auto px-6 py-5">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -163,7 +163,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                 <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                                     {ticket_number}
                                 </h1>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
                                     {customer_name}
                                 </p>
                             </div>
@@ -249,7 +249,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-4">
                         <Card className={`p-6 ${alertBorders[alertLevel]}`}>
-                            <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+                            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700">
                                 <h2 className="text-lg font-semibold">Status</h2>
                                 {alertLevel !== "normal" && (
                                     <Badge
@@ -314,8 +314,6 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                                     return;
                                                 }
                                                 setEstTimeRepair(new Date(event.target.value));
-                                                console.log(event.target.value);
-                                                console.log(est_time_repair);
                                             }}
                                             aria-invalid={Boolean(fieldError(state.errors, "est_time_repair"))}
                                         />
@@ -342,36 +340,36 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                         </Card>
 
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Device Information
                             </h2>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Device Type
                                     </Label>
                                     <Input value={device_type} disabled />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-gray-600">Brand</Label>
+                                    <Label className="text-gray-600 dark:text-gray-400">Brand</Label>
                                     <Input value={device_brand} disabled />
                                 </div>
                                 <div className="col-span-2 space-y-2">
-                                    <Label className="text-gray-600">Model</Label>
+                                    <Label className="text-gray-600 dark:text-gray-400">Model</Label>
                                     <Input value={device_model ?? ""} disabled />
                                 </div>
                             </div>
                         </Card>
 
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Issue Description
                             </h2>
                             <Textarea value={issue_description} disabled />
                         </Card>
 
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Technician Notes
                             </h2>
                             <div className="space-y-2">
@@ -393,7 +391,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                         </Card>
 
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Photos
                             </h2>
                             {photo ? (
@@ -402,12 +400,12 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                     alt="Device Photo"
                                     width={1280}
                                     height={720}
-                                    className="w-full h-56 object-cover rounded-lg border border-slate-200"
+                                    className="w-full h-56 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
                                 />
                             ) : (
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                                    <Camera className="size-8 mx-auto text-gray-400 mb-2" />
-                                    <p className="text-sm text-gray-500">
+                                <div className="border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-lg p-8 text-center">
+                                    <Camera className="size-8 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
                                         No photos uploaded
                                     </p>
                                 </div>
@@ -417,26 +415,26 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
 
                     <div className="space-y-6">
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Customer
                             </h2>
                             <div className="space-y-3">
                                 <div className="space-y-2">
-                                    <Label className="text-gray-600">Name</Label>
+                                    <Label className="text-gray-600 dark:text-gray-400">Name</Label>
                                     <Input value={customer_name} disabled />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-gray-600">Phone</Label>
+                                    <Label className="text-gray-600 dark:text-gray-400">Phone</Label>
                                     <div className="flex items-center gap-2">
-                                        <Phone className="size-4 text-gray-400" />
+                                        <Phone className="size-4 text-gray-400 dark:text-gray-500" />
                                         <Input value={customer_phone} disabled />
                                     </div>
                                 </div>
                                 {customer_email && (
                                     <div className="space-y-2">
-                                        <Label className="text-gray-600">Email</Label>
+                                        <Label className="text-gray-600 dark:text-gray-400">Email</Label>
                                         <div className="flex items-center gap-2">
-                                            <Mail className="size-4 text-gray-400" />
+                                            <Mail className="size-4 text-gray-400 dark:text-gray-500" />
                                             <Input value={customer_email} disabled />
                                         </div>
                                     </div>
@@ -445,11 +443,11 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                         </Card>
 
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Tracking
                             </h2>
                             <div className="space-y-2">
-                                <Label className="text-gray-600">
+                                <Label className="text-gray-600 dark:text-gray-400">
                                     Tracking ID
                                 </Label>
                                 <p className="font-mono text-sm">
@@ -470,14 +468,14 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                         </Card>
 
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Payment
                             </h2>
                             <div className="space-y-3">
                                 <div className="space-y-2">
                                     <Label htmlFor="repair-cost">Repair Cost</Label>
                                     <div className="flex items-center gap-2">
-                                        <PhilippinePeso className="size-4 text-gray-400" />
+                                        <PhilippinePeso className="size-4 text-gray-400 dark:text-gray-500" />
                                         <Input
                                             id="repair-cost"
                                             name="repair_cost"
@@ -507,7 +505,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                 <div className="space-y-2">
                                     <Label htmlFor="parts-cost">Parts Cost</Label>
                                     <div className="flex items-center gap-2">
-                                        <PhilippinePeso className="size-4 text-gray-400" />
+                                        <PhilippinePeso className="size-4 text-gray-400 dark:text-gray-500" />
                                         <Input
                                             id="parts-cost"
                                             name="parts_cost"
@@ -537,7 +535,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                 <div className="space-y-2">
                                     <Label htmlFor="total">Total</Label>
                                     <div className="flex items-center gap-2">
-                                        <PhilippinePeso className="size-4 text-gray-400" />
+                                        <PhilippinePeso className="size-4 text-gray-400 dark:text-gray-500" />
                                         <Input
                                             id="total"
                                             type="number"
@@ -574,12 +572,12 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                         </Card>
 
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Timeline
                             </h2>
                             <div className="space-y-3 text-sm">
                                 <div className="space-y-2">
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Created
                                     </Label>
                                     <Input
@@ -588,7 +586,7 @@ export default function TicketEdit({ ticket }: { ticket: TicketDetailsType }) {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Last Updated
                                     </Label>
                                     <Input

@@ -170,7 +170,7 @@ export default function TicketAdd() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
             <Dialog
                 open={isConfirmDialogOpen}
                 onOpenChange={(open) => {
@@ -200,7 +200,7 @@ export default function TicketAdd() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+            <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="max-w-4xl mx-auto px-6 py-5">
                     <div className="flex items-center gap-4">
                         <Link href="/">
@@ -217,7 +217,7 @@ export default function TicketAdd() {
                             <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                                 New Repair Ticket
                             </h1>
-                            <p className="text-sm text-slate-600">
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
                                 Digital Device Intake
                             </p>
                         </div>
@@ -241,7 +241,7 @@ export default function TicketAdd() {
                         ) : null}
 
                         {/* Customer Information */}
-                        <Card className="p-6 shadow-lg border-slate-200">
+                        <Card className="p-6 shadow-lg border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="p-2 bg-blue-100 rounded-lg">
                                     <svg
@@ -258,7 +258,7 @@ export default function TicketAdd() {
                                         />
                                     </svg>
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-800">
+                                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                                     Customer Information
                                 </h2>
                             </div>
@@ -340,7 +340,7 @@ export default function TicketAdd() {
                         </Card>
 
                         {/* Device Information */}
-                        <Card className="p-6 shadow-lg border-slate-200">
+                        <Card className="p-6 shadow-lg border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="p-2 bg-purple-100 rounded-lg">
                                     <svg
@@ -357,7 +357,7 @@ export default function TicketAdd() {
                                         />
                                     </svg>
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-800">
+                                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                                     Device Information
                                 </h2>
                             </div>
@@ -454,7 +454,7 @@ export default function TicketAdd() {
                         </Card>
 
                         {/* Issue Description */}
-                        <Card className="p-6 shadow-lg border-slate-200">
+                        <Card className="p-6 shadow-lg border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="p-2 bg-orange-100 rounded-lg">
                                     <svg
@@ -471,7 +471,7 @@ export default function TicketAdd() {
                                         />
                                     </svg>
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-800">
+                                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                                     Issue Description
                                 </h2>
                             </div>
@@ -532,12 +532,12 @@ export default function TicketAdd() {
                         </Card>
 
                         {/* Photos */}
-                        <Card className="p-6 shadow-lg border-slate-200">
+                        <Card className="p-6 shadow-lg border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="p-2 bg-green-100 rounded-lg">
                                     <Camera className="size-5 text-green-600" />
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-800">
+                                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                                     Photos
                                 </h2>
                             </div>
@@ -547,12 +547,12 @@ export default function TicketAdd() {
                                         htmlFor="photoUpload"
                                         className="cursor-pointer"
                                     >
-                                        <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-sky-400 hover:bg-sky-50/50 transition-all bg-gradient-to-br from-slate-50 to-blue-50/20">
+                                        <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-8 text-center hover:border-sky-400 hover:bg-sky-50/50 dark:hover:bg-sky-900/20 transition-all bg-gradient-to-br from-slate-50 to-blue-50/20 dark:from-slate-900 dark:to-slate-800">
                                             <Camera className="size-12 mx-auto text-slate-400 mb-2" />
-                                            <p className="text-sm font-medium text-slate-700">
+                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
                                                 Click to upload current device photo
                                             </p>
-                                            <p className="text-xs text-slate-500 mt-1">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                                 One photo only. It will be compressed before upload.
                                             </p>
                                         </div>
@@ -575,7 +575,7 @@ export default function TicketAdd() {
                                             alt="Selected device"
                                             width={1200}
                                             height={720}
-                                            className="h-52 w-full rounded-lg border border-slate-200 object-cover"
+                                            className="h-52 w-full rounded-lg border border-slate-200 dark:border-slate-700 object-cover"
                                         />
                                         <Button
                                             type="button"
@@ -603,7 +603,7 @@ export default function TicketAdd() {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    className="hover:bg-slate-50"
+                                    className="hover:bg-slate-50 dark:hover:bg-slate-800"
                                 >
                                     Cancel
                                 </Button>

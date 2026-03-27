@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NavLinkType, TicketStatus } from "@/app/lib/definitions";
-import clsx from "clsx";
+import { NavLinkType } from "@/app/lib/definitions";
 import { LayoutDashboard, Logs, SearchAlert, Toolbox, Cpu, Boxes, ListCheck, Menu, Settings, Search, Plus, CircleX } from "lucide-react";
 // import { HiOutlineQueueList } from "react-icons/hi2";
 // import { LuLayoutDashboard } from "react-icons/lu";
@@ -15,7 +14,7 @@ import { LayoutDashboard, Logs, SearchAlert, Toolbox, Cpu, Boxes, ListCheck, Men
 // import { IoMdClose } from "react-icons/io";
 // import { IoSettingsOutline, IoSearch } from "react-icons/io5";
 // import { GoPlus } from "react-icons/go";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "../../reusable/button";
 import { Input } from "../../reusable/input";
 
@@ -139,9 +138,9 @@ export default function Header() {
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="hover:bg-slate-50 transition-colors hidden sm:flex h-9 w-9"
+                                    className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors hidden sm:flex h-9 w-9"
                                 >
-                                    <Settings className="size-4 text-slate-600" />
+                                    <Settings className="size-4 text-slate-600 dark:text-slate-300" />
                                 </Button>
                             </Link>
 
@@ -162,7 +161,7 @@ export default function Header() {
                                 placeholder="Search tickets, customers, devices..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 bg-white border-slate-200 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
+                                className="pl-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
                             />
                         </div>
                         {/* <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-1 sm:pb-0 hide-scrollbar">
@@ -200,7 +199,7 @@ export default function Header() {
                     </div>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden lg:flex items-center gap-1 mt-6 border-b border-slate-200">
+                    <div className="hidden lg:flex items-center gap-1 mt-6 border-b border-slate-200 dark:border-slate-700">
                         {navItems.map((item) => {
                             const isActive =
                                 pathname === item.href ||
@@ -232,7 +231,7 @@ export default function Header() {
                                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors relative ${
                                         isActive
                                             ? "border-blue-600 text-blue-600 bg-blue-50/50"
-                                            : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                                            : "border-transparent text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/70"
                                     }`}
                                 >
                                     {item.icon && (
@@ -264,9 +263,9 @@ export default function Header() {
                         className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
                         onClick={() => setIsMobileMenuOpen(false)}
                     />
-                    <div className="relative w-64 max-w-sm bg-white h-full shadow-2xl flex flex-col animate-[slide-in-from-left_0.2s_ease-out]">
-                        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                            <span className="font-bold text-slate-800">
+                    <div className="relative w-64 max-w-sm bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col animate-[slide-in-from-left_0.2s_ease-out]">
+                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <span className="font-bold text-slate-800 dark:text-slate-100">
                                 Menu
                             </span>
                             <Button
@@ -283,7 +282,7 @@ export default function Header() {
                                 href="/settings"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             >
-                                <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-50 hover:text-slate-900 mb-2 border-b border-slate-100 pb-4">
+                                <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 mb-2 border-b border-slate-100 dark:border-slate-800 pb-4">
                                     <div className="flex items-center gap-2">
                                         <Settings className="size-4" />
                                         Settings
@@ -312,7 +311,7 @@ export default function Header() {
                                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                                             isActive
                                                 ? "bg-blue-50 text-blue-700"
-                                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                                : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
                                         }`}
                                     >
                                         <div className="flex items-center gap-2">

@@ -69,8 +69,8 @@ export default function TicketCheckout({ ticket }: { ticket: TicketCheckoutType 
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
-            <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+            <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="max-w-5xl mx-auto px-6 py-5">
                     <div className="flex items-center gap-4">
                         <Link href={`/ticket/${ticket_number}`}>
@@ -83,7 +83,7 @@ export default function TicketCheckout({ ticket }: { ticket: TicketCheckoutType 
                             <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                                 Checkout
                             </h1>
-                            <p className="text-sm text-slate-600">{ticket_number}</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">{ticket_number}</p>
                         </div>
                     </div>
                 </div>
@@ -92,53 +92,53 @@ export default function TicketCheckout({ ticket }: { ticket: TicketCheckoutType 
             <div className="max-w-5xl mx-auto px-6 py-8">
                 <div className="grid grid-cols-1 gap-8">
                     <div className="space-y-6">
-                        <Card className="p-6 shadow-lg border-slate-200">
+                        <Card className="p-6 shadow-lg border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="p-2 bg-blue-100 rounded-lg">
                                     <Receipt className="size-5 text-blue-600" />
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-800">
+                                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                                     Repair Summary
                                 </h2>
                             </div>
                             <div className="space-y-3">
                                 <div>
-                                    <Label className="text-gray-600">Customer</Label>
+                                    <Label className="text-gray-600 dark:text-gray-400">Customer</Label>
                                     <p className="font-medium">{customer_name}</p>
-                                    <p className="text-sm text-gray-600">{customer_phone}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{customer_phone}</p>
                                 </div>
                                 <Separator />
                                 <div>
-                                    <Label className="text-gray-600">Device</Label>
+                                    <Label className="text-gray-600 dark:text-gray-400">Device</Label>
                                     <p className="font-medium">
                                         {device_brand} {device_model}
                                     </p>
-                                    <p className="text-sm text-gray-600">{device_type}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">{device_type}</p>
                                 </div>
                                 <Separator />
                                 <div>
-                                    <Label className="text-gray-600">Issue</Label>
+                                    <Label className="text-gray-600 dark:text-gray-400">Issue</Label>
                                     <p className="text-sm">{issue_description}</p>
                                 </div>
                             </div>
                         </Card>
 
-                        <Card className="p-6 shadow-lg border-slate-200">
+                        <Card className="p-6 shadow-lg border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="p-2 bg-green-100 rounded-lg">
                                     <PhilippinePeso className="size-5 text-green-600" />
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-800">Payment</h2>
+                                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Payment</h2>
                             </div>
 
                             <div className="space-y-4">
-                                <div className="bg-gray-50 p-4 rounded-lg">
+                                <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
                                     {paymentRows.map(([key, value]) => (
                                         <div
                                             key={key}
                                             className="flex justify-between items-center mb-2"
                                         >
-                                            <span className="text-gray-600">
+                                            <span className="text-gray-600 dark:text-gray-400">
                                                 {key === "repair_cost"
                                                     ? "Repair Cost"
                                                     : "Parts Cost"}

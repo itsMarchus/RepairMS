@@ -66,8 +66,8 @@ export default async function TicketDetails({
     );
 
     return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
-            <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+        <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+            <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="max-w-6xl mx-auto px-6 py-5">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -85,7 +85,7 @@ export default async function TicketDetails({
                                 <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                                     {ticket_number}
                                 </h1>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
                                     {customer_name}
                                 </p>
                             </div>
@@ -121,7 +121,7 @@ export default async function TicketDetails({
                     <div className="lg:col-span-2 space-y-4">
                         {/* Status Card */}
                         <Card className={`p-6 ${alertBorders[alertLevel]}`}>
-                            <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+                            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700">
                                 <h2 className="text-lg font-semibold">
                                     Status
                                 </h2>
@@ -143,7 +143,7 @@ export default async function TicketDetails({
                             <div className="space-y-4">
                                 <div>
                                     <Label>Current Status</Label>
-                                    <span className="text-sm text-slate-600 font-medium">
+                                    <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">
                                         {getStatusFromSlug(
                                             status as TicketStatus,
                                         )}
@@ -153,7 +153,7 @@ export default async function TicketDetails({
                                 <div>
                                     <Label>Estimated Completion</Label>
                                     <div className="flex items-center justify-between gap-3">
-                                        <span className="text-sm text-slate-600">
+                                        <span className="text-sm text-slate-600 dark:text-slate-400">
                                             {est_time_repair_local}
                                         </span>
                                         <Badge
@@ -174,18 +174,18 @@ export default async function TicketDetails({
 
                         {/* Device Information */}
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Device Information
                             </h2>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Device Type
                                     </Label>
                                     <p className="font-medium">{device_type}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Brand
                                     </Label>
                                     <p className="font-medium">
@@ -193,7 +193,7 @@ export default async function TicketDetails({
                                     </p>
                                 </div>
                                 <div className="col-span-2">
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Model
                                     </Label>
                                     <p className="font-medium">
@@ -205,15 +205,15 @@ export default async function TicketDetails({
 
                         {/* Issue Description */}
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Issue Description
                             </h2>
-                            <p className="text-gray-700">{issue_description}</p>
+                            <p className="text-gray-700 dark:text-gray-300">{issue_description}</p>
                         </Card>
 
                         {/* Technician Notes */}
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Technician Notes
                             </h2>
                             <Textarea
@@ -226,7 +226,7 @@ export default async function TicketDetails({
 
                         {/* Photos */}
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Photos
                             </h2>
                             <div className="space-y-4">
@@ -239,9 +239,9 @@ export default async function TicketDetails({
                                             />
                                         </div>
                                     ) : (
-                                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                                            <Camera className="size-8 mx-auto text-gray-400 mb-2" />
-                                            <p className="text-sm text-gray-500">
+                                        <div className="border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-lg p-8 text-center">
+                                            <Camera className="size-8 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                                 No photos uploaded
                                             </p>
                                         </div>
@@ -255,12 +255,12 @@ export default async function TicketDetails({
                     <div className="space-y-6">
                         {/* Customer Info */}
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Customer
                             </h2>
                             <div className="space-y-3">
                                 <div>
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Name
                                     </Label>
                                     <p className="font-medium">
@@ -268,11 +268,11 @@ export default async function TicketDetails({
                                     </p>
                                 </div>
                                 <div>
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Phone
                                     </Label>
                                     <div className="flex items-center gap-2">
-                                        <Phone className="size-4 text-gray-400" />
+                                        <Phone className="size-4 text-gray-400 dark:text-gray-500" />
                                         <p className="font-medium">
                                             {customer_phone}
                                         </p>
@@ -280,11 +280,11 @@ export default async function TicketDetails({
                                 </div>
                                 {customer_email && (
                                     <div>
-                                        <Label className="text-gray-600">
+                                        <Label className="text-gray-600 dark:text-gray-400">
                                             Email
                                         </Label>
                                         <div className="flex items-center gap-2">
-                                            <Mail className="size-4 text-gray-400" />
+                                            <Mail className="size-4 text-gray-400 dark:text-gray-500" />
                                             <p className="font-medium text-sm">
                                                 {customer_email}
                                             </p>
@@ -306,12 +306,12 @@ export default async function TicketDetails({
 
                         {/* Tracking */}
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Tracking
                             </h2>
                             <div className="space-y-3">
                                 <div>
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Tracking ID
                                     </Label>
                                     <p className="font-mono text-sm">
@@ -334,44 +334,44 @@ export default async function TicketDetails({
 
                         {/* Payment */}
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Payment
                             </h2>
                             <div className="space-y-3">
                                 <div>
                                     <Label className="pb-2">Repair Cost</Label>
-                                    <div className="rounded-lg border border-slate-200 overflow-hidden">
+                                    <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
                                         <table className="w-full text-sm">
-                                            <thead className="bg-slate-50">
+                                            <thead className="bg-slate-50 dark:bg-slate-800">
                                                 <tr>
-                                                    <th className="px-3 py-2 text-left font-medium text-slate-600">
+                                                    <th className="px-3 py-2 text-left font-medium text-slate-600 dark:text-slate-300">
                                                         Item
                                                     </th>
-                                                    <th className="px-3 py-2 text-right font-medium text-slate-600">
+                                                    <th className="px-3 py-2 text-right font-medium text-slate-600 dark:text-slate-300">
                                                         Amount
                                                     </th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-slate-100">
+                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                                 {paymentRows.map(
                                                     ([key, value]) => (
                                                         <tr
                                                             key={key}
                                                             className={
                                                                 key === "total"
-                                                                    ? "bg-slate-50/70"
+                                                                    ? "bg-slate-50/70 dark:bg-slate-800/70"
                                                                     : ""
                                                             }
                                                         >
                                                             <td
-                                                                className={`px-3 py-2 ${key === "total" ? "font-semibold text-slate-900" : "text-slate-700"}`}
+                                                                className={`px-3 py-2 ${key === "total" ? "font-semibold text-slate-900 dark:text-slate-100" : "text-slate-700 dark:text-slate-300"}`}
                                                             >
                                                                 {formatLabel(
                                                                     key,
                                                                 )}
                                                             </td>
                                                             <td
-                                                                className={`px-3 py-2 text-right ${key === "total" ? "font-semibold text-slate-900" : "font-medium"}`}
+                                                                className={`px-3 py-2 text-right ${key === "total" ? "font-semibold text-slate-900 dark:text-slate-100" : "font-medium"}`}
                                                             >
                                                                 {formatMoney(
                                                                     value as number,
@@ -397,12 +397,12 @@ export default async function TicketDetails({
 
                         {/* Timeline */}
                         <Card className="p-6">
-                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200">
+                            <h2 className="text-lg font-semibold pb-4 border-b border-slate-200 dark:border-slate-700">
                                 Timeline
                             </h2>
                             <div className="space-y-3 text-sm">
                                 <div>
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Created
                                     </Label>
                                     <p>
@@ -410,7 +410,7 @@ export default async function TicketDetails({
                                     </p>
                                 </div>
                                 <div>
-                                    <Label className="text-gray-600">
+                                    <Label className="text-gray-600 dark:text-gray-400">
                                         Last Updated
                                     </Label>
                                     <p>

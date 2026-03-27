@@ -41,7 +41,7 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
     };
 
     const alertColors = {
-        normal: "bg-white border-slate-200 hover:border-sky-300",
+        normal: "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-sky-300",
         warning:
             "bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-300 hover:border-amber-400 shadow-amber-100",
         danger: "bg-gradient-to-br from-red-50 to-rose-50 border-red-300 hover:border-red-400 shadow-red-100",
@@ -60,10 +60,10 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
             >
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-slate-100 rounded-lg group-hover:bg-sky-100 transition-colors">
+                        <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-sky-100 dark:group-hover:bg-sky-900/30 transition-colors">
                             {getDeviceIcon('size-4')}
                         </div>
-                        <span className="font-bold text-slate-900">
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
                             {ticket_number}
                         </span>
                     </div>
@@ -79,23 +79,23 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
                 </div>
 
                 <div className="space-y-2.5">
-                    <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                        <User className="size-3.5 text-slate-500" />
+                    <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                        <User className="size-3.5 text-slate-500 dark:text-slate-400" />
                         <span>{customer_name}</span>
                     </div>
 
                     <div className="text-sm">
-                        <div className="font-semibold text-slate-800">
+                        <div className="font-semibold text-slate-800 dark:text-slate-100">
                             {device_brand} {device_model}
                         </div>
-                        <div className="line-clamp-2 mt-1 text-slate-600 leading-relaxed">
+                        <div className="line-clamp-2 mt-1 text-slate-600 dark:text-slate-300 leading-relaxed">
                             {issue_description}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs mt-3 px-2 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
-                        <Clock className="size-3.5 text-slate-600" />
-                        <span className="font-medium text-slate-700">
+                    <div className="flex items-center gap-2 text-xs mt-3 px-2 py-1.5 bg-slate-50 dark:bg-slate-800/80 rounded-lg border border-slate-100 dark:border-slate-700">
+                        <Clock className="size-3.5 text-slate-600 dark:text-slate-300" />
+                        <span className="font-medium text-slate-700 dark:text-slate-200">
                             {getTimeUntilDeadline(
                                 est_time_repair,
                             )}
@@ -103,7 +103,7 @@ export function TicketCard({ ticket }: { ticket: TicketCardType }) {
                     </div>
 
                     {total_cost > 0 && (
-                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-100">
+                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                             <Badge
                                 variant={paid ? "default" : "secondary"}
                                 className="font-bold shadow-sm"
