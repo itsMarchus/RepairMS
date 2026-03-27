@@ -5,6 +5,7 @@ import { cleanFileName } from "@/app/utils/utils";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { validStatusSlugs } from "../statusUtils";
+import { redirect } from "next/navigation";
 
 const ticketSchema = z.object({
     id: z.string(),
@@ -267,4 +268,119 @@ export async function checkoutTicket(id: string, paid: boolean): Promise<ticketS
             message: "Ticket checked out successfully.",
         };
     }
+}
+
+///////////////////////////////////////////////////////////////////////
+// Login Actions
+const LOGIN_ROUTE = "/login";
+const DEFAULT_REDIRECT = "/";
+
+const encodeMessage = (message: string) => encodeURIComponent(message);
+const safeRedirectPath = (input: string) =>
+    input.startsWith("/") ? input : DEFAULT_REDIRECT;
+
+export async function loginWithPassword(formData: FormData) {
+    const email = String(formData.get("email") ?? "").trim().toLowerCase();
+    const password = String(formData.get("password") ?? "");
+    const next = safeRedirectPath(String(formData.get("next") ?? DEFAULT_REDIRECT));
+
+    if (!email || !password) {
+        redirect(`${LOGIN_ROUTE}?error=${encodeMessage("Email and password are required.")}`);
+    }
+
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+    const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+    });
+
+    if (error) {
+        redirect(`${LOGIN_ROUTE}?error=${encodeMessage(error.message)}`);
+    }
+
+    redirect(next);
+}
+
+export async function searchTicket(ticketNumber: string) {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+console.log(ticketNumber);
+    const { data, error } = await supabase.rpc('search_ticket', {
+        p_ticket_number: ticketNumber
+    })
+
+    if (error) {
+        return {
+            success: false,
+            data: null,
+            error: "We couldn't verify that ticket right now. Please try again.",
+        };
+    }
+
+    if (!data || data.length === 0) {
+        return {
+            success: false,
+            data: null,
+            error: "Ticket not found. Please check your ticket number and try again.",
+        };
+    }
+
+    return {
+        success: true,
+        data: data,
+        error: null,
+    };
+}
+
+
+
+///////////////////////////////////////////////////////////////////////
+// Settings Actions
+export async function signOut() {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+    await supabase.auth.signOut();
+    redirect("/login");
+}
+
+export async function saveStoreDetails(
+    _prevState: { success: boolean; message: string },
+    formData: FormData,
+) {
+    const id = String(formData.get("id") ?? "").trim();
+    const shopName = String(formData.get("shop_name") ?? "").trim();
+    const physicalAddress = String(formData.get("physical_address") ?? "").trim();
+    const contactNumber = String(formData.get("contact_number") ?? "").trim();
+
+    if (!id) {
+        return { success: false, message: "Store record id is missing." };
+    }
+
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase.rpc("update_store_details", {
+        p_id: id,
+        p_shop_name: shopName || null,
+        p_physical_address: physicalAddress || null,
+        p_contact_number: contactNumber || null,
+    });
+
+    if (error) {
+        return {
+            success: false,
+            message:
+                "Failed to save store details right now. Please try again.",
+        };
+    }
+
+    if (!data) {
+        return {
+            success: false,
+            message: "Store details were not updated. Please try again.",
+        };
+    }
+
+    return { success: true, message: "Store details updated successfully." };
 }
