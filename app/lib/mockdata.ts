@@ -29,7 +29,7 @@
 
     
 // */}
-// import { DeviceType, TicketCardType, TicketDetailsType, TicketStatus } from "./definitions";
+import { DashboardDigestData } from "./definitions";
 
 // interface customer {
 //     id: string;
@@ -214,3 +214,119 @@
 // }
 
 // export { mockDataCustomer, mockDataTicket, mockDataTicketCard, mockDataTicketDetail };
+
+//////////////////////////////////////////////
+// Mock data for the Dashboard/Daily Digest
+
+const now = new Date();
+
+export const dashboardDigestMock: DashboardDigestData = {
+    title: "Daily Digest",
+    subtitle: "Overview of ticket health, workload, and operations.",
+    lastUpdatedAt: now.toISOString(),
+    kpis: [
+        {
+            id: "active_tickets",
+            label: "Active Tickets",
+            value: "34",
+            hint: "Across queued to pickup",
+            tone: "default",
+        },
+        {
+            id: "ready_for_pickup",
+            label: "Ready for Pickup",
+            value: "8",
+            hint: "Awaiting customer claim",
+            tone: "success",
+        },
+        {
+            id: "due_soon",
+            label: "Due Soon",
+            value: "5",
+            hint: "Expected within 6 hours",
+            tone: "warning",
+        },
+        {
+            id: "overdue",
+            label: "Overdue",
+            value: "2",
+            hint: "Past estimated completion",
+            tone: "danger",
+        },
+        {
+            id: "unpaid_pickup",
+            label: "Unpaid Pickup",
+            value: "3",
+            hint: "Pickup tickets with pending payment",
+            tone: "warning",
+        },
+        {
+            id: "created_today",
+            label: "Created Today",
+            value: "11",
+            hint: "New tickets logged today",
+            tone: "default",
+        },
+    ],
+    statusCounts: [
+        { status: "queued", label: "Queued", count: 10, href: "/queued", icon: "⏱️" },
+        { status: "diagnosing", label: "Diagnosing", count: 7, href: "/diagnosing", icon: "🔍" },
+        {
+            status: "waiting-for-parts",
+            label: "Waiting for Parts",
+            count: 6,
+            href: "/waiting-for-parts",
+            icon: "📦",
+        },
+        { status: "repairing", label: "Repairing", count: 11, href: "/repairing", icon: "🔧" },
+        { status: "pickup", label: "Ready for Pickup", count: 8, href: "/pickup", icon: "✅" },
+        { status: "completed", label: "Completed", count: 23, href: "/completed", icon: "🏁" },
+    ],
+    urgentTickets: [
+        {
+            id: "t-091",
+            ticket_number: "u4v672v1",
+            customer_name: "Marchus Deligero",
+            device_type: "laptop",
+            device_brand: "Lenovo",
+            device_model: "IdeaPad 5",
+            issue_description: "Intermittent charging and battery drain after replacement.",
+            est_time_repair: new Date(now.getTime() + 34 * 60 * 1000),
+            status: "repairing",
+            total_cost: 0,
+            paid: false,
+        },
+        {
+            id: "t-104",
+            ticket_number: "ksgjv1n2",
+            customer_name: "Marchus Deligero",
+            device_type: "phone",
+            device_brand: "Apple",
+            device_model: "iPhone 13",
+            issue_description: "Charging IC issue, board-level repair required.",
+            est_time_repair: new Date(now.getTime() - (77 * 60 + 26) * 60 * 1000),
+            status: "pickup",
+            total_cost: 600,
+            paid: false,
+        },
+        {
+            id: "t-117",
+            ticket_number: "tkp090221",
+            customer_name: "Jane Santos",
+            device_type: "tablet",
+            device_brand: "Samsung",
+            device_model: "Galaxy Tab S8",
+            issue_description: "No display backlight after drop impact.",
+            est_time_repair: new Date(now.getTime() + 2 * 60 * 60 * 1000),
+            status: "diagnosing",
+            total_cost: 1200,
+            paid: false,
+        },
+    ],
+    activity: {
+        createdToday: 11,
+        completedToday: 6,
+        revenueToday: 15450,
+        unpaidPickup: 3,
+    },
+};

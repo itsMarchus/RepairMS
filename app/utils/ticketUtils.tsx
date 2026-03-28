@@ -32,7 +32,7 @@ export const getTicketAlertLevel = ({
 
     if (hoursUntilDeadline < 0) {
       return 'danger'; // Overdue
-    } else if (hoursUntilDeadline <= 5) {
+    } else if (hoursUntilDeadline <= 6) {
       return 'warning'; // Within 5 hours of deadline
     }
 

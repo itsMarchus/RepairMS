@@ -98,3 +98,36 @@ export interface StoreDetailsType {
     physical_address: string;
     contact_number: string;
 }
+
+export interface DashboardKpi {
+    id: string;
+    label: string;
+    value: string;
+    hint?: string;
+    tone?: "default" | "warning" | "danger" | "success";
+}
+
+export interface DashboardStatusCount {
+    status: TicketStatus;
+    label: string;
+    count: number;
+    href: string;
+    icon: string;
+}
+
+export interface DashboardActivitySummary {
+    createdToday: number;
+    completedToday: number;
+    revenueToday: number;
+    unpaidPickup: number;
+}
+
+export interface DashboardDigestData {
+    title: string;
+    subtitle: string;
+    lastUpdatedAt: string;
+    kpis: DashboardKpi[];
+    statusCounts: DashboardStatusCount[];
+    urgentTickets: TicketCardType[];
+    activity: DashboardActivitySummary;
+}
