@@ -17,7 +17,7 @@ export default function UrgentList({
                 </p>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {tickets.map((ticket) => (
                     <TicketCard key={ticket.id} ticket={ticket} />
                 ))}

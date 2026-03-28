@@ -132,7 +132,7 @@ export const getDashboardKpis = async () => {
         return { success: false, error: error.message }
     }
 
-    return { data: data[0] }
+    return data[0]
 }
 
 export const getDashboardStatusCounts = async () => {
@@ -146,7 +146,7 @@ export const getDashboardStatusCounts = async () => {
         return { success: false, error: error.message }
     }
 
-    return { data: data[0] }
+    return data[0]
 }
 
 export const getDashboardUrgentTickets = async () => {
@@ -160,5 +160,5 @@ export const getDashboardUrgentTickets = async () => {
         return { success: false, error: error.message }
     }
 
-    return { data: data[0] }
+    return data
 }

@@ -102,7 +102,7 @@ export interface StoreDetailsType {
 export interface DashboardKpi {
     id: string;
     label: string;
-    value: string;
+    value: number;
     hint?: string;
     tone?: "default" | "warning" | "danger" | "success";
 }
@@ -122,13 +122,4 @@ export interface DashboardActivitySummary {
     unpaidPickup: number;
 }
 
-export interface DashboardDigestData {
-    title: string;
-    subtitle: string;
-    lastUpdatedAt: string;
-    kpis: DashboardKpi[];
-    statusCounts: DashboardStatusCount[];
-    urgentTickets: TicketCardType[];
-    activity: DashboardActivitySummary;
-}
 

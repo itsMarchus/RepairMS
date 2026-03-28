@@ -8,6 +8,7 @@ export default function StatusPipeline({
 }: {
     statusCounts: DashboardStatusCount[];
 }) {
+
     return (
         <section className="space-y-3">
             <div className="flex items-center justify-between">
@@ -20,7 +21,7 @@ export default function StatusPipeline({
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {statusCounts.map((item) => (
-                    <Link key={item.status} href={item.href}>
+                    <Link key={item.status} href={`/tickets?status=${item.status}`}>
                         <Card className="p-4 transition-colors hover:border-sky-300 dark:hover:border-sky-700">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">

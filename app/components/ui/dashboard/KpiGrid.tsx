@@ -16,7 +16,7 @@ export default function KpiGrid({ kpis }: { kpis: DashboardKpi[] }) {
                     key={kpi.id}
                     className={`p-4 shadow-sm ${toneClassMap[kpi.tone ?? "default"]}`}
                 >
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-xl font-semibold text-slate-600 dark:text-slate-400">
                         {kpi.label}
                     </p>
                     <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
