@@ -131,3 +131,4 @@ export interface DashboardDigestData {
     urgentTickets: TicketCardType[];
     activity: DashboardActivitySummary;
 }
+

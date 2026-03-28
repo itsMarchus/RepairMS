@@ -117,3 +117,48 @@ export const getUserDetails = async (email: string) => {
 
     return { success: true, data: data[0] };
 }
+
+export const getDashboardKpis = async () => {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+    const timezone = cookieStore.get('timezone')?.value ?? 'Asia/Manila';
+
+    const { data, error } = await supabase.rpc('get_dashboard_kpis', {
+        p_timezone: timezone
+    })
+
+    if (error) {
+        console.error('Failed to get dashboard kpis:', error)
+        return { success: false, error: error.message }
+    }
+
+    return { data: data[0] }
+}
+
+export const getDashboardStatusCounts = async () => {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase.rpc('get_dashboard_status_counts');
+
+    if (error) {
+        console.error('Failed to get dashboard status counts:', error)
+        return { success: false, error: error.message }
+    }
+
+    return { data: data[0] }
+}
+
+export const getDashboardUrgentTickets = async () => {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { data, error } = await supabase.rpc('get_dashboard_urgent_tickets');
+
+    if (error) {
+        console.error('Failed to get dashboard urgent tickets:', error)
+        return { success: false, error: error.message }
+    }
+
+    return { data: data[0] }
+}
