@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ToyexFix Repair Management System (RMS)
 
-## Getting Started
+## System Overview
 
-First, run the development server:
+ToyexFix RMS is a web-based repair operations platform for managing customer device repairs from intake to release.  
+It combines an internal staff dashboard with a public customer tracking portal, so both teams and customers can follow repair progress in real time.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The system is built with Next.js App Router and Supabase (database, auth, RPC, and storage), with a status-driven workflow designed for daily repair shop operations.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Core Capabilities
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Staff Authentication and Access Control**
+  - Secure sign-in for staff users
+  - Protected internal routes with middleware/session checks
+  - Public access allowed only for customer tracking routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Ticket Lifecycle Management**
+  - Create new repair tickets with customer and device details
+  - Manage statuses (`queued`, `diagnosing`, `waiting-for-parts`, `repairing`, `pickup`, `completed`)
+  - Edit technician notes, estimated completion, and payment fields
+  - Checkout flow for payment completion and final release
 
-## Learn More
+- **Daily Digest Dashboard**
+  - KPI cards and pipeline summaries
+  - Urgent ticket highlights (due soon/overdue)
+  - Operational activity snapshot for the day
 
-To learn more about Next.js, take a look at the following resources:
+- **Customer Portal**
+  - Public ticket tracking by ticket number
+  - Controlled, read-only ticket visibility for customers
+  - Dedicated not-found and fallback states for invalid tracking links
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Settings and Preferences**
+  - Account/store information display and updates
+  - Theme and UI preference controls
+  - Secure sign-out
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Data Model (High-Level)
 
-## Deploy on Vercel
+- **`customers`**
+  - Customer identity and contact info (`name`, `phone_number`, `email`)
+- **`tickets`**
+  - Links to customer records
+  - Device details, issue description, technician notes
+  - Status and estimated repair timeline
+  - Payment fields (`repair_cost`, `parts_cost`, `paid`) and generated `total_cost`
+  - System-generated unique `ticket_number`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Frontend/App:** Next.js (App Router), React, TypeScript
+- **Backend/Data:** Supabase PostgreSQL + RPC functions
+- **Auth/Session:** Supabase Auth + SSR cookie-based client handling
+- **UI:** Reusable component system with dark mode support
+- **Validation/Actions:** Server actions, structured error handling, and route-level fallbacks
