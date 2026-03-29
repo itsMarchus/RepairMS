@@ -2,6 +2,8 @@ import DashboardDigest from "@/app/components/ui/dashboard/DashboardDigest";
 import { getDashboardKpis, getDashboardStatusCounts, getDashboardUrgentTickets } from "@/app/utils/supabase/queries";
 import { mapDashboardKpis, mapDashboardStatusCounts } from "@/app/utils/dashboardUtils";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
 
     const [rawKpis, statusCounts, urgentTickets] = await Promise.all([
