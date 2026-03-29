@@ -35,6 +35,15 @@ const statusLabels: Record<TicketStatus, string> = {
     completed: "Completed",
 };
 
+const statusDescriptions: Record<TicketStatus, string> = {
+    queued: "has been checked in and is waiting in queue.",
+    diagnosing: "is currently being diagnosed.",
+    "waiting-for-parts": "is waiting for required replacement parts.",
+    repairing: "is currently being repaired.",
+    pickup: "is ready for pickup.",
+    completed: "has been repaired and marked as completed.",
+};
+
 const getStageIcon = (status: TicketStatus) => {
     switch (status) {
         case "queued":
@@ -65,7 +74,6 @@ const getStatusIcon = (index: number, currentStatusIndex: number) => {
 };
 
 export default async function TicketPortal({ ticket, store }: { ticket: TicketPortalType, store: StoreDetailsType }) {
-    // const router = useRouter();
     const {
         ticket_number,
         customer_name,
@@ -85,6 +93,7 @@ export default async function TicketPortal({ ticket, store }: { ticket: TicketPo
     const normalizedStatus = statusOrder.includes(status)
         ? status
         : "queued";
+    const statusDescription = statusDescriptions[normalizedStatus];
     const currentStatusIndex = statusOrder.indexOf(normalizedStatus);
     const progressPercentage =
         currentStatusIndex >= 0
@@ -148,8 +157,8 @@ export default async function TicketPortal({ ticket, store }: { ticket: TicketPo
                             Hello, {customer_name}!
                         </h2>
                         <p className="text-slate-600 dark:text-slate-300">
-                            Your {device_brand} {device_model} is currently being
-                            repaired
+                            Your {device_brand} {device_model}{" "}
+                            {statusDescription}
                         </p>
                     </div>
 
@@ -244,30 +253,32 @@ export default async function TicketPortal({ ticket, store }: { ticket: TicketPo
                     </div>
                 </Card>
 
-                <Card className="p-6 mb-6 shadow-xl border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="font-bold mb-1 text-slate-800 dark:text-slate-100">
-                                Estimated Completion
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {estimatedCompletion}
-                            </p>
-                            <Badge
-                                variant={
-                                    alertLevel === "danger"
-                                    ? "destructive"
-                                    : alertLevel === "warning"
-                                    ? "outline"
-                                    : "secondary"
-                                }
-                            >
-                                {getTimeUntilDeadline(est_time_repair)}
-                            </Badge>
+                {normalizedStatus !== "pickup" && normalizedStatus !== "completed" && (
+                    <Card className="p-6 mb-6 shadow-xl border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="font-bold mb-1 text-slate-800 dark:text-slate-100">
+                                    Estimated Completion
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {estimatedCompletion}
+                                </p>
+                                <Badge
+                                    variant={
+                                        alertLevel === "danger"
+                                        ? "destructive"
+                                        : alertLevel === "warning"
+                                        ? "outline"
+                                        : "secondary"
+                                    }
+                                >
+                                    {getTimeUntilDeadline(est_time_repair)}
+                                </Badge>
+                            </div>
+                            <Clock className="size-8 text-blue-500" />
                         </div>
-                        <Clock className="size-8 text-blue-500" />
-                    </div>
-                </Card>
+                    </Card>
+                )}
 
                 {normalizedStatus === "pickup" && (
                     <Card className="p-8 bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-300 shadow-2xl">
@@ -280,6 +291,22 @@ export default async function TicketPortal({ ticket, store }: { ticket: TicketPo
                             </h3>
                             <p className="text-emerald-800 text-lg">
                                 Please visit our shop to pick up your device.
+                            </p>
+                        </div>
+                    </Card>
+                )}
+
+                {normalizedStatus === "completed" && (
+                    <Card className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300 shadow-2xl dark:from-slate-900 dark:to-slate-800 dark:border-blue-700/70">
+                        <div className="text-center">
+                            <div className="inline-flex p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4 shadow-lg shadow-blue-500/30">
+                                <CheckCheck className="size-12 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-200 mb-2">
+                                Repair Completed
+                            </h3>
+                            <p className="text-blue-800 dark:text-blue-300 text-lg">
+                                This repair has been completed and released.
                             </p>
                         </div>
                     </Card>
