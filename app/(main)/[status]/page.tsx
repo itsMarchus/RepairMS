@@ -22,7 +22,7 @@ export default async function StatusPage({ params }: StatusPageProps) {
     }
 
     const status = getStatusFromSlug(slug as TicketStatus);
-    const { data } = await getTicketsByStatus(slug as TicketStatus);
+    const data = await getTicketsByStatus(slug as TicketStatus);
 
     const statusConfig: Record<
         TicketStatus,

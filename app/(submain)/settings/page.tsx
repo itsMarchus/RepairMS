@@ -2,7 +2,7 @@ import SettingsView from "@/app/components/ui/settings";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getStoreDetails, getUserDetails,  } from "@/app/utils/supabase/queries";
+import { getStoreDetails, getUserDetails } from "@/app/utils/supabase/queries";
 
 export default async function SettingsPage() {
     const cookieStore = await cookies();
@@ -21,16 +21,8 @@ export default async function SettingsPage() {
         getStoreDetails(),
     ]);
 
-    const { data: userData, success: userSuccess } = userDetails;
-    const { data: storeData, success: storeSuccess } = storeDetails;
-
-    if (!userSuccess) {
-        console.error("Failed to fetch user details:");
-    }
-
-    if (!storeSuccess) {
-        console.error("Failed to fetch store details:");
-    }
+    const userData = userDetails;
+    const storeData = storeDetails;
 
     return (
         <SettingsView

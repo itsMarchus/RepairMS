@@ -16,7 +16,7 @@ export default async function EditTicketPage({
 
     try {
         const { data, success } = await getTicketDetailsByNumber(ticket);
-        if (!success) {
+        if (!success || !data) {
             notFound();
         }
 

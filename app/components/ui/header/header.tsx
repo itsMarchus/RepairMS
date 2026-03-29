@@ -4,16 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavLinkType } from "@/app/lib/definitions";
 import { LayoutDashboard, Logs, SearchAlert, Toolbox, Cpu, Boxes, ListCheck, Menu, Settings, Search, Plus, CircleX } from "lucide-react";
-// import { HiOutlineQueueList } from "react-icons/hi2";
-// import { LuLayoutDashboard } from "react-icons/lu";
-// import { LiaDiagnosesSolid, LiaToolsSolid } from "react-icons/lia";
-// import { GoCpu } from "react-icons/go";
-// import { CiBoxes } from "react-icons/ci";
-// import { MdPlaylistAddCheck, MdMenu } from "react-icons/md";
-// import { FaRegBell } from "react-icons/fa";
-// import { IoMdClose } from "react-icons/io";
-// import { IoSettingsOutline, IoSearch } from "react-icons/io5";
-// import { GoPlus } from "react-icons/go";
 import { useState } from "react";
 import { Button } from "../../reusable/button";
 import { Input } from "../../reusable/input";
@@ -155,7 +145,7 @@ export default function Header() {
                         </div>
                     </div>
                     <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                        <div className="relative flex-1 max-w-md w-full">
+                        {/* <div className="relative flex-1 max-w-md w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                             <Input
                                 placeholder="Search tickets, customers, devices..."
@@ -163,38 +153,6 @@ export default function Header() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
                             />
-                        </div>
-                        {/* <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-1 sm:pb-0 hide-scrollbar">
-                            <div className="bg-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-slate-200 shadow-sm shrink-0">
-                                <span className="text-[10px] sm:text-xs text-slate-600">
-                                    Total
-                                </span>
-                                <div className="font-bold text-sm sm:text-lg text-slate-900 leading-tight">
-                                    {tickets.length}
-                                </div>
-                            </div>
-                            <div className="bg-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-slate-200 shadow-sm shrink-0">
-                                <span className="text-[10px] sm:text-xs text-slate-600">
-                                    Active
-                                </span>
-                                <div className="font-bold text-sm sm:text-lg text-blue-600 leading-tight">
-                                    {
-                                        tickets.filter(
-                                            (t) => t.status !== "completed",
-                                        ).length
-                                    }
-                                </div>
-                            </div>
-                            {urgentCount > 0 && (
-                                <div className="bg-gradient-to-br from-red-50 to-rose-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-red-200 shadow-sm shrink-0 sm:hidden">
-                                    <span className="text-[10px] sm:text-xs text-red-700">
-                                        Urgent
-                                    </span>
-                                    <div className="font-bold text-sm sm:text-lg text-red-600 leading-tight">
-                                        {urgentCount}
-                                    </div>
-                                </div>
-                            )}
                         </div> */}
                     </div>
 
@@ -205,29 +163,10 @@ export default function Header() {
                                 pathname === item.href ||
                                 (item.href !== "/" &&
                                     pathname.startsWith(item.href));
-                            // const isStatus = statuses.includes(
-                            //     item.id as TicketStatus,
-                            // );
-                            // const statusCount = isStatus
-                            //     ? tickets.filter((t) => t.status === item.id)
-                            //           .length
-                            //     : 0;
-
                             return (
                                 <Link
                                     key={item.name}
                                     href={item.href}
-                                    // onDrop={(e) => {
-                                    //     e.preventDefault();
-                                    //     if (!isStatus) return;
-                                    //     const ticketId =
-                                    //         e.dataTransfer.getData("ticketId");
-                                    //     if (ticketId)
-                                    //         handleStatusChange(
-                                    //             ticketId,
-                                    //             item.id as TicketStatus,
-                                    //         );
-                                    // }}  change this to non clickable if already in
                                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors relative ${
                                         isActive
                                             ? "bg-blue-50 text-blue-700"
@@ -238,17 +177,6 @@ export default function Header() {
                                         <item.icon className="size-4" />
                                     )}
                                     {item.name}
-                                    {/* {isStatus && (
-                                        <span
-                                            className={`ml-1.5 text-xs py-0.5 px-2 rounded-full ${
-                                                isActive
-                                                    ? "bg-blue-100 text-blue-700"
-                                                    : "bg-slate-100 text-slate-600"
-                                            }`}
-                                        >
-                                            {statusCount}
-                                        </span>
-                                    )} */}
                                 </Link>
                             );
                         })}
@@ -294,14 +222,6 @@ export default function Header() {
                                 pathname === item.href ||
                                 (item.href !== "/" &&
                                     pathname.startsWith(item.href));
-                                // const isStatus = statuses.includes(
-                                //     item.id as TicketStatus,
-                                // );
-                                // const statusCount = isStatus
-                                //     ? tickets.filter(
-                                //           (t) => t.status === item.id,
-                                //       ).length
-                                //     : 0;
 
                                 return (
                                     <Link
@@ -320,17 +240,6 @@ export default function Header() {
                                             )}
                                             {item.name}
                                         </div>
-                                        {/* {isStatus && (
-                                            <span
-                                                className={`text-xs py-0.5 px-2 rounded-full ${
-                                                    isActive
-                                                        ? "bg-blue-100 text-blue-700"
-                                                        : "bg-slate-100 text-slate-600"
-                                                }`}
-                                            >
-                                                {statusCount}
-                                            </span>
-                                        )} */}
                                     </Link>
                                 );
                             })}

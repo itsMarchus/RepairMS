@@ -17,7 +17,7 @@ export default async function CheckoutPage({
 
     try {
         const { data, success } = await getTicketCheckoutDetails(ticket);
-        if (!success) {
+        if (!success || !data) {
             notFound();
         }
 

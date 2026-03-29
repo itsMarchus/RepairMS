@@ -20,7 +20,7 @@ export default async function PortalPage({
     ]);
 
     const { data: ticketData, success: ticketSuccess } = ticketDetails;
-    const { data: storeData } = storeDetails;
+    const storeData = storeDetails;
 
     if (!ticketSuccess || !ticketData ) {
         notFound();

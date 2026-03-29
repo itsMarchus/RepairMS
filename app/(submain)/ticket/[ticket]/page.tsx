@@ -13,11 +13,11 @@ export default async function TicketDetailsPage({
     
     if (!ticket) {
         notFound();
-    } // TODO: add not-found.tsx
+    }
 
     try {
         const { data, success } = await getTicketDetailsByNumber(ticket);
-        if (!success) {
+        if (!success || !data) {
             notFound();
         }
 
