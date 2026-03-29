@@ -1,7 +1,13 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react"; 
 import TicketDetails from "@/app/components/ui/tickets/ticketDetail";
 import { getTicketDetailsByNumber } from "@/app/utils/supabase/queries";
+
+export const metadata: Metadata = {
+    title: "Ticket Details",
+    description: "View ticket details"
+};
 
 export default async function TicketDetailsPage({
     params,

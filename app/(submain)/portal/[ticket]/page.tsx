@@ -1,7 +1,13 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import TicketPortal from "@/app/components/ui/tickets/ticketPortal";
 import { getTicketPortalDetails, getStoreDetails } from "@/app/utils/supabase/queries";
+
+export const metadata: Metadata = {
+    title: "Portal",
+    description: "Track your repair"
+};
 
 export default async function PortalPage({
     params,

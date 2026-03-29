@@ -1,8 +1,14 @@
+import { Metadata } from "next";
 import SettingsView from "@/app/components/ui/settings";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getStoreDetails, getUserDetails } from "@/app/utils/supabase/queries";
+
+export const metadata: Metadata = {
+    title: "Settings",
+    description: "Manage your settings"
+};
 
 export default async function SettingsPage() {
     const cookieStore = await cookies();

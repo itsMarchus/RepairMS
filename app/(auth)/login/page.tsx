@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -10,6 +11,11 @@ interface LoginPageProps {
         next?: string;
     }>;
 }
+
+export const metadata: Metadata = {
+    title: "Login",
+    description: "Login to your account"
+};
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
     const cookieStore = await cookies();

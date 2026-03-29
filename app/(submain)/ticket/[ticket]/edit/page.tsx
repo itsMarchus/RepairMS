@@ -1,7 +1,13 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import TicketEdit from "@/app/components/ui/tickets/ticketEdit";
 import { Suspense } from "react";
 import { getTicketDetailsByNumber } from "@/app/utils/supabase/queries";
+
+export const metadata: Metadata = {
+    title: "Edit Ticket",
+    description: "Edit your ticket"
+};
 
 export default async function EditTicketPage({
     params,

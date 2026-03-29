@@ -73,7 +73,7 @@ export const mapDashboardStatusCounts = (rawStatusCounts: {
     pickup: number;
     completed: number;
 }) => {
-    console.log(rawStatusCounts);
+
     const statusCounts = [
         {
             status: "queued",

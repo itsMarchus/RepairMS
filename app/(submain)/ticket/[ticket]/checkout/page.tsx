@@ -1,7 +1,13 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import TicketCheckout from "@/app/components/ui/tickets/ticketCheckout";
 import { getTicketCheckoutDetails } from "@/app/utils/supabase/queries";
+
+export const metadata: Metadata = {
+    title: "Ticket Checkout",
+    description: "Checkout your ticket"
+};
 
 export default async function CheckoutPage({
     params,
