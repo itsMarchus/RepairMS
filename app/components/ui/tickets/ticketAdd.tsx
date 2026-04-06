@@ -28,7 +28,7 @@ import {
 } from "@/app/components/reusable/select";
 import { useRouter } from "next/navigation";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
-import { createTicket } from "@/app/utils/supabase/action";
+import { createTicket, searchCustomersAutocomplete } from "@/app/utils/supabase/action";
 import type { ticketState } from "@/app/utils/supabase/action";
 
 const compressionOptions = {
@@ -39,6 +39,13 @@ const compressionOptions = {
 
 const fieldError = (errors: ticketState["errors"], key: keyof ticketState["errors"]) =>
     errors[key]?.[0] ?? null;
+
+type CustomerSuggestion = {
+    id: string;
+    name: string;
+    phone_number: string;
+    email: string | null;
+};
 
 export default function TicketAdd() {
     const router = useRouter();
@@ -58,8 +65,15 @@ export default function TicketAdd() {
     const [deviceModel, setDeviceModel] = useState("");
     const [issueDescription, setIssueDescription] = useState("");
     const [estTimeRepair, setEstTimeRepair] = useState("");
+    const [customerSuggestions, setCustomerSuggestions] = useState<CustomerSuggestion[]>([]);
+    const [isSearchingCustomers, setIsSearchingCustomers] = useState(false);
+    const [customerLookupError, setCustomerLookupError] = useState<string | null>(null);
+    const [hasSearchedCustomers, setHasSearchedCustomers] = useState(false);
+    const [activeCustomerField, setActiveCustomerField] = useState<"name" | "phone" | null>(null);
 
     const photoInputRef = useRef<HTMLInputElement>(null);
+    const customerLookupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const customerLookupRequestIdRef = useRef(0);
     const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
     const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string | null>(null);
     const [photoError, setPhotoError] = useState<string | null>(null);
@@ -83,6 +97,132 @@ export default function TicketAdd() {
 
         toast.error(state.message);
     }, [router, state.message, state.success]);
+
+    useEffect(() => {
+        if (!activeCustomerField || isPending) {
+            return;
+        }
+
+        const query =
+            activeCustomerField === "phone"
+                ? customerPhone.trim()
+                : customerName.trim();
+
+        if (query.length < 3) {
+            return;
+        }
+
+        const requestId = ++customerLookupRequestIdRef.current;
+
+        if (customerLookupTimerRef.current) {
+            clearTimeout(customerLookupTimerRef.current);
+        }
+
+        customerLookupTimerRef.current = setTimeout(async () => {
+            setIsSearchingCustomers(true);
+            setCustomerLookupError(null);
+            const result = await searchCustomersAutocomplete(query);
+            if (requestId !== customerLookupRequestIdRef.current) {
+                return;
+            }
+
+            setIsSearchingCustomers(false);
+            setHasSearchedCustomers(true);
+
+            if (!result.success) {
+                setCustomerSuggestions([]);
+                setCustomerLookupError(
+                    result.error ?? "Failed to lookup customers.",
+                );
+                return;
+            }
+
+            setCustomerSuggestions(result.data);
+            setCustomerLookupError(null);
+        }, 300);
+
+        return () => {
+            if (customerLookupTimerRef.current) {
+                clearTimeout(customerLookupTimerRef.current);
+                customerLookupTimerRef.current = null;
+            }
+        };
+    }, [activeCustomerField, customerName, customerPhone, isPending]);
+
+    const clearCustomerLookupState = () => {
+        setCustomerSuggestions([]);
+        setCustomerLookupError(null);
+        setHasSearchedCustomers(false);
+        setIsSearchingCustomers(false);
+    };
+
+    const handleCustomerFieldBlur = () => {
+        setTimeout(() => {
+            setActiveCustomerField(null);
+            clearCustomerLookupState();
+        }, 120);
+    };
+
+    const handleCustomerSuggestionSelect = (suggestion: CustomerSuggestion) => {
+        setCustomerName(suggestion.name);
+        setCustomerPhone(suggestion.phone_number);
+        setCustomerEmail(suggestion.email ?? "");
+        setActiveCustomerField(null);
+        clearCustomerLookupState();
+    };
+
+    const renderCustomerSuggestions = (field: "name" | "phone") => {
+        if (activeCustomerField !== field || isPending) {
+            return null;
+        }
+
+        const query = field === "phone" ? customerPhone.trim() : customerName.trim();
+        if (query.length < 3) {
+            return null;
+        }
+
+        return (
+            <div className="absolute z-20 mt-1 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg">
+                {isSearchingCustomers ? (
+                    <p className="px-3 py-2 text-sm text-slate-600 dark:text-slate-300">
+                        Searching customers...
+                    </p>
+                ) : customerLookupError ? (
+                    <p className="px-3 py-2 text-sm text-red-600">
+                        {customerLookupError}
+                    </p>
+                ) : customerSuggestions.length === 0 && hasSearchedCustomers ? (
+                    <p className="px-3 py-2 text-sm text-slate-600 dark:text-slate-300">
+                        No matching customer found.
+                    </p>
+                ) : (
+                    <ul className="max-h-56 overflow-y-auto py-1">
+                        {customerSuggestions.map((suggestion) => (
+                            <li key={suggestion.id}>
+                                <button
+                                    type="button"
+                                    className="w-full px-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                    onMouseDown={(event) => {
+                                        event.preventDefault();
+                                        handleCustomerSuggestionSelect(suggestion);
+                                    }}
+                                >
+                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                                        {suggestion.name} • {suggestion.phone_number}
+                                    </p>
+                                    {suggestion.email ? (
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                                            {suggestion.email}
+                                        </p>
+                                    ) : null}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        );
+    };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -263,7 +403,7 @@ export default function TicketAdd() {
                                 </h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
+                                <div className="relative">
                                     <Label htmlFor="customerName">
                                         Customer Name *
                                     </Label>
@@ -271,9 +411,19 @@ export default function TicketAdd() {
                                         id="customerName"
                                         name="customer_name"
                                         value={customerName}
-                                        onChange={(e) =>
-                                            setCustomerName(e.target.value)
-                                        }
+                                        onFocus={() => setActiveCustomerField("name")}
+                                        onBlur={handleCustomerFieldBlur}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setCustomerName(value);
+                                            setActiveCustomerField("name");
+                                            if (value.trim().length < 3) {
+                                                clearCustomerLookupState();
+                                            } else {
+                                                setHasSearchedCustomers(false);
+                                                setCustomerLookupError(null);
+                                            }
+                                        }}
                                         placeholder="John Doe"
                                         required
                                     />
@@ -285,8 +435,9 @@ export default function TicketAdd() {
                                             )}
                                         </p>
                                     ) : null}
+                                    {renderCustomerSuggestions("name")}
                                 </div>
-                                <div>
+                                <div className="relative">
                                     <Label htmlFor="customerPhone">
                                         Phone Number *
                                     </Label>
@@ -295,11 +446,21 @@ export default function TicketAdd() {
                                         name="customer_phone"
                                         type="tel"
                                         value={customerPhone}
-                                        onChange={(e) =>
+                                        onFocus={() => setActiveCustomerField("phone")}
+                                        onBlur={handleCustomerFieldBlur}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/\D/g, "");
                                             setCustomerPhone(
-                                                e.target.value.replace(/\D/g, ""),
-                                            )
-                                        }
+                                                value,
+                                            );
+                                            setActiveCustomerField("phone");
+                                            if (value.trim().length < 3) {
+                                                clearCustomerLookupState();
+                                            } else {
+                                                setHasSearchedCustomers(false);
+                                                setCustomerLookupError(null);
+                                            }
+                                        }}
                                         maxLength={11}
                                         placeholder="09123456789"
                                         required
@@ -312,6 +473,7 @@ export default function TicketAdd() {
                                             )}
                                         </p>
                                     ) : null}
+                                    {renderCustomerSuggestions("phone")}
                                 </div>
                                 <div className="md:col-span-2">
                                     <Label htmlFor="customerEmail">

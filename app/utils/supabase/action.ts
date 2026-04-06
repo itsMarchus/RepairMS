@@ -333,6 +333,54 @@ console.log(ticketNumber);
     };
 }
 
+type CustomerAutocompleteResult = {
+    id: string;
+    name: string;
+    phone_number: string;
+    email: string | null;
+};
+
+export async function searchCustomersAutocomplete(query: string) {
+    const normalizedQuery = String(query ?? "").trim();
+    if (normalizedQuery.length < 3) {
+        return {
+            success: true,
+            data: [] as CustomerAutocompleteResult[],
+            error: null as string | null,
+        };
+    }
+
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+    const { data, error } = await supabase.rpc("search_customers_autocomplete", {
+        p_query: normalizedQuery,
+    });
+
+    if (error) {
+        console.error("Failed to search customers:", error.message);
+        return {
+            success: false,
+            data: [] as CustomerAutocompleteResult[],
+            error: "Failed to search customers. Please try again.",
+        };
+    }
+
+    const normalizedData: CustomerAutocompleteResult[] = (data ?? []).map(
+        (row: Partial<CustomerAutocompleteResult>) => ({
+            id: String(row.id ?? ""),
+            name: String(row.name ?? ""),
+            phone_number: String(row.phone_number ?? ""),
+            email: row.email ? String(row.email) : null,
+        }),
+    );
+
+    return {
+        success: true,
+        data: normalizedData,
+        error: null as string | null,
+    };
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////
