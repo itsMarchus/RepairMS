@@ -56,7 +56,7 @@ const navItems: NavLinkType[] = [
 export default function Header() {
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-    const [searchQuery, setSearchQuery] = useState("");
+    // const [searchQuery, setSearchQuery] = useState("");
     // const urgentCount = tickets.filter(ticket => {
     //     const now = new Date();
     //     const deadline = new Date(ticket.estimatedCompletionDate);

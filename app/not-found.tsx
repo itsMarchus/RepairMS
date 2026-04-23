@@ -11,7 +11,7 @@ import {
 
 export default function NotFound() {
     return (
-        <main className="min-h-[50vh] flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4">
+        <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4">
             <Card className="w-full max-w-lg shadow-lg">
                 <CardHeader className="text-center">
                     <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
