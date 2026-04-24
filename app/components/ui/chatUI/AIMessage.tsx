@@ -44,12 +44,14 @@ export default function AIMessage({ content, status = "done", className }: AIMes
                         <span className="text-sm">Thinking...</span>
                     </span>
                 ) : (
-                    <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                    <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {content}
+                        </ReactMarkdown>
                         {isStreaming ? (
                             <span className="ml-0.5 inline-block h-4 w-[2px] translate-y-0.5 animate-pulse bg-slate-500 dark:bg-slate-300" />
                         ) : null}
-                    </p>
+                    </div>
                 )}
             </div>
         </div>
