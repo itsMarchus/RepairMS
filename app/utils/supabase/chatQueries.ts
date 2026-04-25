@@ -13,6 +13,7 @@ const getSupabase = async () => {
 export interface ChatThreadRow extends ChatThreadSummary {
     ticket_id: string;
     created_by: string | null;
+    summarized_until_at: string | null;
 }
 
 /**
@@ -53,6 +54,37 @@ export async function getChatMessages(
 
     if (error) {
         console.error("Failed to load chat messages:", error.message);
+        return [];
+    }
+
+    return (data ?? []) as ChatMessageRow[];
+}
+
+/**
+ * Load only the messages that came AFTER the running summary's watermark
+ * for a thread. Pass `null` to load every message (e.g. when the thread has
+ * never been summarized yet).
+ */
+export async function getChatMessagesByThreadAfter(
+    threadId: string,
+    after: string | null,
+): Promise<ChatMessageRow[]> {
+    if (!threadId) return [];
+
+    const supabase = await getSupabase();
+    const { data, error } = await supabase.rpc(
+        "get_chat_messages_by_thread_after",
+        {
+            p_thread_id: threadId,
+            p_after: after,
+        },
+    );
+
+    if (error) {
+        console.error(
+            "Failed to load chat messages after watermark:",
+            error.message,
+        );
         return [];
     }
 

@@ -126,6 +126,32 @@ export async function updateChatThreadTitle(
     }
 }
 
+/**
+ * Persist the running conversation summary plus the watermark
+ * (`summarized_until_at`) so the next turn can skip the messages this
+ * summary already covers. Both fields are written atomically inside the
+ * Postgres function.
+ */
+export async function updateChatThreadSummary(
+    threadId: string,
+    summary: string,
+    summarizedUntilAt: string,
+): Promise<void> {
+    if (!threadId) throw new Error("threadId is required");
+    if (!summary || summary.trim().length === 0) return;
+
+    const supabase = await getSupabase();
+    const { error } = await supabase.rpc("update_chat_thread_summary", {
+        p_thread_id: threadId,
+        p_summary: summary,
+        p_summarized_until_at: summarizedUntilAt,
+    });
+
+    if (error) {
+        console.error("Failed to update chat thread summary:", error.message);
+    }
+}
+
 export async function deleteChatThread(threadId: string): Promise<void> {
     if (!threadId) throw new Error("threadId is required");
 

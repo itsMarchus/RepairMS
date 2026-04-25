@@ -1,13 +1,24 @@
-import type { AIMessageChunk } from "langchain";
-import { agent, type ChatAgentContext } from "@/app/utils/ai/agent";
+import {
+    type AIMessageChunk,
+    type BaseMessage,
+    SystemMessage,
+} from "langchain";
+import {
+    agent,
+    SUMMARY_KEEP_MESSAGES,
+    SUMMARY_PREFIX,
+    type ChatAgentContext,
+} from "@/app/utils/ai/agent";
 import { dbRowsToLangchain } from "@/app/utils/ai/messages";
 import {
-    getChatMessages,
+    getChatMessagesByThreadAfter,
     getChatThreadById,
+    type ChatThreadRow,
 } from "@/app/utils/supabase/chatQueries";
 import {
     appendChatMessage,
     createChatThread,
+    updateChatThreadSummary,
     updateChatThreadTitle,
 } from "@/app/utils/supabase/chatActions";
 import { getTicketDetailsByNumber } from "@/app/utils/supabase/queries";
@@ -110,16 +121,17 @@ export async function runChatStream({
 
     let activeThreadId: string;
     let isNewThread = false;
+    let existingThread: ChatThreadRow | null = null;
 
     if (threadId) {
-        const existing = await getChatThreadById(threadId);
-        if (!existing || existing.ticket_id !== ticket.id) {
+        existingThread = await getChatThreadById(threadId);
+        if (!existingThread || existingThread.ticket_id !== ticket.id) {
             throw new ChatServiceError(
                 "Chat thread not found for this ticket.",
                 404,
             );
         }
-        activeThreadId = existing.id;
+        activeThreadId = existingThread.id;
     } else {
         try {
             const created = await createChatThread(ticket.id);
@@ -152,8 +164,23 @@ export async function runChatStream({
         }
     }
 
-    const historyRows = await getChatMessages(activeThreadId);
-    const langchainMessages = dbRowsToLangchain(historyRows);
+    // Watermark-aware load: only the messages that came AFTER the running
+    // summary, plus the persisted summary reinjected as a SystemMessage so
+    // the agent has full context without re-feeding ancient turns.
+    const watermark = existingThread?.summarized_until_at ?? null;
+    const previousSummary = existingThread?.summary?.trim() ?? "";
+    const historyRows = await getChatMessagesByThreadAfter(
+        activeThreadId,
+        watermark,
+    );
+
+    const langchainMessages: BaseMessage[] = [];
+    if (previousSummary.length > 0) {
+        langchainMessages.push(
+            new SystemMessage(`${SUMMARY_PREFIX}\n${previousSummary}`),
+        );
+    }
+    langchainMessages.push(...dbRowsToLangchain(historyRows));
 
     const agentContext: ChatAgentContext = {
         ticket: {
@@ -173,6 +200,11 @@ export async function runChatStream({
 
     const encoder = new TextEncoder();
     let assistantBuffer = "";
+    // The agent's final state (set on every `on_chain_end` whose output
+    // looks like the AgentState — i.e. has a `messages` array). The very
+    // last update will be the top-level graph's final state, which is what
+    // we want to scan for a freshly-generated summary SystemMessage.
+    let finalStateMessages: BaseMessage[] | null = null;
 
     const stream = new ReadableStream<Uint8Array>({
         async start(controller) {
@@ -189,12 +221,32 @@ export async function runChatStream({
 
                 for await (const event of events) {
                     if (abortController.signal.aborted) break;
+
                     if (event.event === "on_chat_model_stream") {
-                        const chunk = event.data?.chunk as AIMessageChunk | undefined;
+                        // Skip tokens emitted by the summarization model so
+                        // the user never sees the internal "Summary of
+                        // earlier conversation:" text leak into the reply.
+                        const tags = event.tags;
+                        if (
+                            Array.isArray(tags) &&
+                            tags.includes("summarization")
+                        ) {
+                            continue;
+                        }
+                        const chunk = event.data?.chunk as
+                            | AIMessageChunk
+                            | undefined;
                         const token = extractTokenText(chunk?.content);
                         if (token) {
                             assistantBuffer += token;
                             controller.enqueue(encoder.encode(token));
+                        }
+                    } else if (event.event === "on_chain_end") {
+                        const output = event.data?.output as
+                            | { messages?: BaseMessage[] }
+                            | undefined;
+                        if (output && Array.isArray(output.messages)) {
+                            finalStateMessages = output.messages;
                         }
                     }
                 }
@@ -241,6 +293,24 @@ export async function runChatStream({
                         saveError,
                     );
                 }
+
+                // Detect whether `summarizationMiddleware` produced a fresh
+                // summary on this turn and, if so, persist it together with
+                // the new watermark so the next turn skips everything it
+                // already covered.
+                try {
+                    await maybePersistSummary({
+                        threadId: activeThreadId,
+                        finalStateMessages,
+                        previousSummary,
+                        historyRows,
+                    });
+                } catch (summaryError) {
+                    console.error(
+                        "Failed to persist chat summary:",
+                        summaryError,
+                    );
+                }
             }
         },
         cancel() {
@@ -250,4 +320,65 @@ export async function runChatStream({
     });
 
     return { stream, threadId: activeThreadId };
+}
+
+interface MaybePersistSummaryArgs {
+    threadId: string;
+    finalStateMessages: BaseMessage[] | null;
+    previousSummary: string;
+    historyRows: { created_at?: string | null }[];
+}
+
+/**
+ * Inspect the agent's final state for a SystemMessage starting with
+ * `SUMMARY_PREFIX`. If found, and either (a) we had no previous summary,
+ * or (b) the new summary differs from the persisted one, write the new
+ * summary plus the watermark of the last summarized message to the DB.
+ *
+ * The watermark is the `created_at` of the LAST historyRow that fell
+ * outside the kept tail (`SUMMARY_KEEP_MESSAGES`), so the next call to
+ * `getChatMessagesByThreadAfter` returns only what the new summary
+ * doesn't already cover.
+ */
+async function maybePersistSummary({
+    threadId,
+    finalStateMessages,
+    previousSummary,
+    historyRows,
+}: MaybePersistSummaryArgs): Promise<void> {
+    if (!finalStateMessages || finalStateMessages.length === 0) return;
+
+    const summaryMessage = [...finalStateMessages].reverse().find((m) => {
+        if (!(m instanceof SystemMessage)) return false;
+        const content = m.content;
+        return (
+            typeof content === "string" && content.startsWith(SUMMARY_PREFIX)
+        );
+    }) as SystemMessage | undefined;
+
+    if (!summaryMessage) return;
+
+    const rawContent = summaryMessage.content as string;
+    const newSummary = rawContent
+        .slice(SUMMARY_PREFIX.length)
+        .replace(/^\s+/, "")
+        .trim();
+
+    if (newSummary.length === 0) return;
+    if (newSummary === previousSummary) return; // nothing to do
+
+    // Same arithmetic as `summarizationMiddleware`: with N input messages
+    // and `keep = SUMMARY_KEEP_MESSAGES`, the middleware summarizes the
+    // first (N - keep) messages. Whether we prepended a previous-summary
+    // SystemMessage or not, the count of historyRows that fell into the
+    // summarized window is exactly `historyRows.length - keep` (the
+    // prepended SystemMessage is just an extra summarized item).
+    const summarizedCount = historyRows.length - SUMMARY_KEEP_MESSAGES;
+    if (summarizedCount <= 0) return;
+
+    const lastSummarizedRow = historyRows[summarizedCount - 1];
+    const newWatermark = lastSummarizedRow?.created_at;
+    if (!newWatermark) return;
+
+    await updateChatThreadSummary(threadId, newSummary, newWatermark);
 }

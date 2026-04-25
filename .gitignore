@@ -44,3 +44,5 @@ next-env.d.ts
 
 app/lib/mockdata.ts
 app/api
+
+db/
