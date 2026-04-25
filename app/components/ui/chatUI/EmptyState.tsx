@@ -13,16 +13,16 @@ const DEFAULT_SUGGESTIONS: Array<{ label: string; prompt: string; icon: React.Co
         prompt: "Give me a step-by-step troubleshooting plan a technician can follow on the shop floor.",
         icon: Wrench,
     },
-    {
-        label: "What parts might I need?",
-        prompt: "Based on the reported issue, what replacement parts or tools should I prepare?",
-        icon: Package,
-    },
-    {
-        label: "Draft a technician note",
-        prompt: "Draft a concise technician note summarizing the initial diagnosis and next steps.",
-        icon: ClipboardList,
-    },
+    // {
+    //     label: "What parts might I need?",
+    //     prompt: "Based on the reported issue, what replacement parts or tools should I prepare?",
+    //     icon: Package,
+    // },
+    // {
+    //     label: "Draft a technician note",
+    //     prompt: "Draft a concise technician note summarizing the initial diagnosis and next steps.",
+    //     icon: ClipboardList,
+    // },
 ];
 
 interface EmptyStateProps {
