@@ -18,15 +18,7 @@ const model = new ChatOllama({
     temperature: 0.4,
 });
 
-/**
- * Dedicated chat model used by `summarizationMiddleware` for compressing
- * older messages. We use the same Ollama model (and therefore the same
- * cost/latency profile) but force `temperature: 0` for deterministic
- * summaries and tag every invocation so the chat service can filter the
- * leaked stream tokens out of the user-facing reply (see langchain JS
- * issue #9455 — the internal model.invoke() inside the middleware is
- * currently emitted on `on_chat_model_stream` like a normal model call).
- */
+// Dedicated chat model used by the SummarizationMiddleware
 const summaryModel = new ChatOllama({
     model: process.env.OLLAMA_MODEL ?? "gemma3",
     baseUrl: process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434",
@@ -35,31 +27,13 @@ const summaryModel = new ChatOllama({
     tags: ["summarization"],
 });
 
-/**
- * Prefix the middleware adds to the SystemMessage that contains the
- * generated summary. Exported so the chat service can both (a) reinject
- * the persisted summary on the next turn and (b) reliably find the
- * summary message in the agent's final state.
- */
+// Prefix the middleware adds to the SystemMessage that contains the generated summary.
 export const SUMMARY_PREFIX = "Summary of earlier conversation:";
 
-/**
- * How many of the most recent messages the middleware preserves
- * verbatim when it summarizes. ~3 user/assistant turns plus tool calls.
- * The chat service uses the same constant to compute the watermark
- * after a summarization fires.
- */
+// Number of messages to keep when summarizing.
 export const SUMMARY_KEEP_MESSAGES = 12;
 
-/**
- * Per-invocation context. The chat service passes the current ticket via
- * `agent.streamEvents(state, { context: { ticket } })`, and the dynamic
- * system-prompt middleware below pulls it back out to render the system
- * message for that single turn.
- *
- * Fields are nullable to match the DB (technician_notes, status, etc. can
- * be null on a freshly created ticket).
- */
+// Per-invocation context.
 export const chatContextSchema = z.object({
     ticket: z.object({
         ticket_number: z.string(),
