@@ -1,15 +1,19 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ChatHeader from "./ChatHeader";
 import ChatMessageList from "./ChatMessageList";
 import ChatComposer from "./ChatComposer";
-import type { ChatMessage } from "./types";
+import type { ChatMessage, ChatThreadSummary } from "./types";
 
 interface ChatViewProps {
     ticketNumber: string;
     ticketSummary?: string;
+    initialThreadId: string | null;
+    initialMessages: ChatMessage[];
+    recentThreads: ChatThreadSummary[];
 }
 
 const makeId = () => {
@@ -19,8 +23,16 @@ const makeId = () => {
     return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 };
 
-export default function ChatView({ ticketNumber, ticketSummary }: ChatViewProps) {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+export default function ChatView({
+    ticketNumber,
+    ticketSummary,
+    initialThreadId,
+    initialMessages,
+    recentThreads,
+}: ChatViewProps) {
+    const router = useRouter();
+    const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+    const [activeThreadId, setActiveThreadId] = useState<string | null>(initialThreadId);
     const [input, setInput] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
     const [isAwaitingFirstToken, setIsAwaitingFirstToken] = useState(false);
@@ -69,11 +81,6 @@ export default function ChatView({ ticketNumber, ticketSummary }: ChatViewProps)
                 status: "streaming",
             };
 
-            const history = [...messages, userMessage].map((m) => ({
-                role: m.role,
-                content: m.content,
-            }));
-
             setMessages((prev) => [...prev, userMessage, assistantMessage]);
             setInput("");
             setIsStreaming(true);
@@ -88,7 +95,10 @@ export default function ChatView({ ticketNumber, ticketSummary }: ChatViewProps)
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ messages: history }),
+                        body: JSON.stringify({
+                            threadId: activeThreadId,
+                            message: trimmed,
+                        }),
                         signal: controller.signal,
                     },
                 );
@@ -97,6 +107,32 @@ export default function ChatView({ ticketNumber, ticketSummary }: ChatViewProps)
                     throw new Error(
                         `Request failed with status ${response.status}`,
                     );
+                }
+
+                // Server is the source of truth for thread identity. Sync
+                // the URL + local state if a brand-new thread was just created.
+                //
+                // IMPORTANT: use `window.history.replaceState` instead of
+                // `router.replace` here. We are still mid-stream, so calling
+                // `router.replace` would trigger an RSC re-fetch of the page,
+                // which would (a) re-render the parent with a new
+                // `<ChatView key={<uuid>} />` and unmount this component,
+                // killing the in-flight fetch reader, and (b) re-hydrate from
+                // the DB while the assistant message hasn't been persisted
+                // yet — making the streaming bubble disappear.
+                // `history.replaceState` updates the URL silently; the
+                // `router.refresh()` in the success path below re-syncs
+                // server data once the assistant message is safely in the DB.
+                const resolvedThreadId = response.headers.get("X-Thread-Id");
+                if (resolvedThreadId && resolvedThreadId !== activeThreadId) {
+                    setActiveThreadId(resolvedThreadId);
+                    if (typeof window !== "undefined") {
+                        window.history.replaceState(
+                            null,
+                            "",
+                            `/ticket/${encodeURIComponent(ticketNumber)}/chat?thread=${encodeURIComponent(resolvedThreadId)}`,
+                        );
+                    }
                 }
 
                 const reader = response.body.getReader();
@@ -124,6 +160,7 @@ export default function ChatView({ ticketNumber, ticketSummary }: ChatViewProps)
                 }
 
                 finalizeAssistant(assistantMessage.id, "done");
+                router.refresh();
             } catch (error) {
                 const isAbort =
                     error instanceof DOMException && error.name === "AbortError";
@@ -153,7 +190,14 @@ export default function ChatView({ ticketNumber, ticketSummary }: ChatViewProps)
                 abortControllerRef.current = null;
             }
         },
-        [appendTokenToAssistant, finalizeAssistant, isStreaming, messages, ticketNumber],
+        [
+            activeThreadId,
+            appendTokenToAssistant,
+            finalizeAssistant,
+            isStreaming,
+            router,
+            ticketNumber,
+        ],
     );
 
     const handleSubmit = useCallback(() => {
@@ -171,21 +215,14 @@ export default function ChatView({ ticketNumber, ticketSummary }: ChatViewProps)
         [sendMessage],
     );
 
-    const handleReset = useCallback(() => {
-        if (isStreaming) {
-            abortControllerRef.current?.abort();
-        }
-        setMessages([]);
-        setInput("");
-    }, [isStreaming]);
-
     return (
         <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
             <ChatHeader
                 ticketNumber={ticketNumber}
                 ticketSummary={ticketSummary}
-                onReset={handleReset}
-                canReset={messages.length > 0 && !isStreaming}
+                recentThreads={recentThreads}
+                activeThreadId={activeThreadId}
+                isStreaming={isStreaming}
             />
             <div className="flex flex-1 flex-col">
                 <ChatMessageList

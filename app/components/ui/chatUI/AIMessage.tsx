@@ -44,8 +44,26 @@ export default function AIMessage({ content, status = "done", className }: AIMes
                         <span className="text-sm">Thinking...</span>
                     </span>
                 ) : (
+                    
                     <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown
+                            components={{
+                                a: ({ href, children }) => (
+                                <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                    color: "#3b82f6",
+                                    textDecoration: "underline",
+                                    fontWeight: 500,
+                                    }}
+                                >
+                                    {children}
+                                </a>
+                                ),
+                            }}
+                            >
                             {content}
                         </ReactMarkdown>
                         {isStreaming ? (

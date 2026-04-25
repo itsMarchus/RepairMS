@@ -1,4 +1,4 @@
-export type ChatRole = "user" | "assistant" | "system";
+export type ChatRole = "user" | "assistant" | "system" | "tool";
 
 export type ChatMessageStatus = "streaming" | "done" | "error";
 
@@ -11,5 +11,14 @@ export interface ChatMessage {
 }
 
 export interface ChatRequestBody {
-    messages: Array<Pick<ChatMessage, "role" | "content">>;
+    threadId: string | null;
+    message: string;
+}
+
+export interface ChatThreadSummary {
+    id: string;
+    title: string | null;
+    summary: string | null;
+    updated_at: string;
+    created_at: string;
 }

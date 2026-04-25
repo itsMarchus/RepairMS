@@ -20,31 +20,67 @@ export const webSearchTool = tool(
     }
 )
 
-export const youtubeSearchTool = tool(
-    async ({ query}) => {
-        const url = "https://www.googleapis.com/youtube/v3/search"
-        const params = {
-            "part": "snippet",
-            "q": query,
-            "key": process.env.YOUTUBE_API_KEY!,
-            "maxResults": 3,
-            "type": "video",
-        }
-        const res = await fetch(`${url}?${params}`)
-        const data = await res.json()
-        let results: string[] = []
+interface YoutubeSearchItem {
+    id?: { videoId?: string };
+    snippet?: { title?: string };
+}
 
-        for (const item of data.items) {
-            const title = item.snippet.title
-            const video_id = item.id.videoId
-            const link = `https://www.youtube.com/watch?v=${video_id}`
-            results.push(`${title} \n ${link}`)
+interface YoutubeSearchResponse {
+    items?: YoutubeSearchItem[];
+    error?: { message?: string };
+}
+
+export const youtubeSearchTool = tool(
+    async ({ query }) => {
+        const apiKey = process.env.YOUTUBE_API_KEY;
+        if (!apiKey) {
+            return "YouTube search is unavailable: YOUTUBE_API_KEY is not configured.";
         }
-        return results.join("\n")
+
+        const url = new URL("https://www.googleapis.com/youtube/v3/search");
+        url.search = new URLSearchParams({
+            part: "snippet",
+            q: query,
+            key: apiKey,
+            maxResults: "3",
+            type: "video",
+        }).toString();
+
+        const res = await fetch(url);
+        const data = (await res.json()) as YoutubeSearchResponse;
+
+        if (!res.ok) {
+            return `YouTube search failed (${res.status}): ${data.error?.message ?? "unknown error"}.`;
+        }
+
+        const items = data.items ?? [];
+        if (items.length === 0) {
+            return `No YouTube results found for "${query}".`;
+        }
+
+        const results = items
+            .map((item) => {
+                const title = item.snippet?.title;
+                const videoId = item.id?.videoId;
+                if (!title || !videoId) return null;
+                return `${title}\nhttps://www.youtube.com/watch?v=${videoId}`;
+            })
+            .filter((line): line is string => line !== null);
+
+        return results.length > 0
+            ? results.join("\n\n")
+            : `No usable YouTube results found for "${query}".`;
     },
     {
         name: "youtubeSearchTool",
-        description: "Search the youtube for information",
+        description:  `
+        Search youtube for videos related to the query.
+        
+        Return 1-5 videos in Markdown format:
+        - [Title](https://youtube.com/...)
+        
+        No raw URLs. No extra text.
+        `,
         schema: z.object({
             query: z.string(),
         }),
